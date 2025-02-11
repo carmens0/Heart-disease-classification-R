@@ -1,6 +1,6 @@
 
 # 🏥 Analisi e Valutazione della Coronary Artery Disease (CAD)
-
+<img src="./image.png" width="800" class="center">
 ## 📌 Descrizione del Progetto
 Questo progetto mira a individuare il miglior modello predittivo per la malattia delle arterie coronarie (CAD) attraverso l'uso di tecniche di **machine learning**. L'analisi si concentra sulla selezione del modello con le migliori metriche di accuratezza e sulla sua interpretabilità mediante il metodo SHAP.
 
