@@ -1,0 +1,1903 @@
+---
+title: "Coronary Artery Disease"
+author: "Carmela Pia Senatore"
+output: pdf_document
+---
+
+# Introduzione
+
+La malattia ischemica del cuore (IHD) rappresenta una delle principali cause di morte in tutto il mondo. La IHD si riferisce a un tipo di malattia cardiaca che manifesta ischemia miocardica, ipossia o necrosi causata da un restringimento o occlusione delle arterie coronarie, che è provocato dall'aterosclerosi.
+
+Secondo la struttura anatomica delle arterie coronarie, ci sono tre arterie principali che forniscono sangue al cuore, ovvero, la LAD (arteria coronaria discendente anteriore sinistra), la LCX (arteria coronaria circonflessa sinistra) e la RCA (arteria coronaria destra).
+
+La malattia delle arterie coronarie (CAD) si verifica quando il lume di una qualsiasi delle tre arterie coronarie è ristretto del 50% o di più. Poiché la CAD è una malattia altamente letale, la tempestiva individuazione e diagnosi sono cruciali per salvare vite e migliorare la prognosi.
+
+L'angiografia coronarica è considerata il gold standard per la diagnosi della CAD. Tuttavia, l'angiografia è una procedura invasiva. La possibilità di rilevare , in maniera non invasiva, la malattia delle arterie coronarie nei pazienti ad alto rischio basandosi su algoritmi di apprendimento automatico potrebbe essere utile per ridurre il carico medico e la grande perdita di vite umane. Questo può avvenire non solo selezionando un modello che permette di comprendere la relazione tra fattori medici e biologici oltre che scelta mirata.
+
+Lo studio è stato condotto in questo modo, per cui ogni sezione ha uno scopo specifico nell'analisi :
+
+1.  **Descrizione del Dataset**: Questa sezione fornisce una comprensione dettagliata di ciascuna variabile nel dataset, oltre che ricerca di paper per una migliore comprensione del dataset.
+
+2.  **Analisi Esplorativa dei Dati (EDA)**: vengono esplorate le strutture e le caratteristiche dei dati attraverso vari metodi grafici e statistici. Questo include la pulizia dei dati, analisi univariata, l'analisi bivariata, l'analisi multivariata, l'analisi della correlazione e dell'informazione mutua oltre che analisi delle corridpondenze multiple e features engeeniring. Queste analisi mirano a scoprire le relazioni potenziali tra le variabili e il loro impatto collettivo sulla previsione di CAD.
+
+3.  **Analisi Predittiva**: Questa parte comporta la pre-elaborazione dei dati, la divisione in set di addestramento e di test. Vengono, poi,  sviluppati modelli predittivi, tra cui boosting, logistic regression, rf, XGBoost, LightGBM. I modelli vengono valutati utilizzando metriche come accuratezza, precisione, recall, punteggio F1 e punteggio roc_auc.
+
+4.  **SHAP**: Il modello selezionato viene interpretato utilizzando i valori SHAP (SHapley Additive exPlanations). Vengono utilizzati il plot dell'importanza delle feature e il plot di dipendenza per comprendere l'interpretabilità locale, attraverso la selezione di specifici pazienti dal dataset.
+
+5.  **Conclusioni**: Questa sezione riassume l'analisi e fornisce approfondimenti ottenuti dai processi di esplorazione e modellazione. Chiaramente si rifletterà sui limiti e i problemi riscontrati durante l'analisi.
+
+# 1. Descrizione del dataset
+
+Il dataset **Z-Alizadeh Sani** è disponibile pubblicamente nel repository UCI Machine Learning. Il dataset contiene informazioni circa pazienti che si sono presentati all'ospedale Shaheed Rajaei (in Iran) per via di dolori al petto. Per ciascun paziente sono incluse 55 caratteristiche appartenenti a quattro categorie.
+
+Le quattro categorie sono:
+
+1.  Caratteristiche demografiche
+2.  Sintomi ed esame fisico
+3.  ECG
+4.  Caratteristiche dell'ecocardiografia
+
+Questi campioni appartengono a due classi, ovvero, la classe **CAD** e la classe **normale.** Quando la stenosi del lume delle arterie coronarie di un campione raggiunge o supera il 50%, questo campione viene classificato come classe CAD; altrimenti appartiene alla classe normale.
+
+Di conseguenza, su 303 campioni, 216 istanze corrispondenti al 71,29% sono della classe CAD, mentre 87 istanze corrispondenti al 28,71% sono della classe normale. 
+
+# 2. Definizione obiettivo
+
+Nel corso dell' analisi, si mira, a definire gli obiettivi tramite l'utilizzo del dataset, con particolare attenzione su due aspetti principali.
+
+-   In primo luogo, verrà condotta un'analisi esplorativa e di model investigation. La prima permetterà di ottenere una visione più dettagliata dei pattern e delle relazioni presenti nei dati; la seconda individuerà il miglior modello utile alla risoluzione del problema.
+
+-   In secondo luogo, ci si concentrerà sull'interpretazione dei modelli stessi. Si utilizzeranno tecniche di visualizzazione avanzate per comprendere meglio quali feature influenzano le previsioni del modello e come avviene la decisione di classificazione.
+
+Nel presente elaborato ci si propone lo studio della CAD soprattutto nell’ottica dell’individuazione di fattori che possano influenzare la variabile dipendente per la comprensione dell’impatto su dati medici, oltre che sull'individuazione di un modello che sia in grado di fare quanti meno errori possibili. Lo scopo sarà pertanto quello di distinguere aspetti determinanti e significativi per la diagnosi dei pazienti oltre che utilizzare questi per sviluppare una corretta classificazione della malattia utilizzando features numeriche e categoriali.\
+Il principale obiettivo è, però, verificare se le reti neurali sono in grado di ottenere risultati migliori rispetto ai modelli non black-box.
+
+## 2.1 Introduzione
+
+Seppur il campo medico è un campo noto, non è esente da problemi statistici. I problemi statistici relativi all’utilizzo di dati medici sono molteplici, di seguito i principali.
+
+Il primo problema che può presentare il dataset è la presenza di missing values. Molto spesso per le p variabili raccolte non sono presenti valori per tutte le osservazioni prese in analisi. I dati mancanti sono un problema perché possono causare una perdita di potere statistico e una distorsione dei risultati, oltre a comportare molto spesso una selezione del campione non rappresentativa, che espone al rischio di una sovrastima o sottostima dell’effetto del predittore sui dati mancanti.
+
+Il secondo problema è relativo alla correlazione presente fra le variabili indipendenti che porta al problema denominato come multicollinearità. Nell’ambito medico tale problema è di particolare rilevanza. I dati medici mostrano un elevata multicollinearità rispetto ad altri tipi di dati. Ciò è dovuto al fatto che alcune condizioni cliniche dei pazienti e misure biologiche adottate sono correlate fra di loro. Tali situazioni si riflettono in ambito statistico da una stretta correlazione fra le variabili.
+
+Un terzo problema riguarda la natura stessa dei dati che sono caratterizzati dalla presenza massiccia di rumore di tipo biologico e tecnico, come il tipo di tecnologia applicata o il metodo utilizzato per la tac/pet eseguita.
+
+Un quarto problema, concernente l’analisi della prevalenza, riguarda l’esplorazione delle tabelle di contingenza contenenti i dati relativi allo stato del paziente.
+
+I problemi appena menzionati si concentrano principalmente nell’ambito statistico. È importante, però, sottolineare che ci sono diverse conseguenze a livello biologico e medico che non possono essere ignorate. La prima conseguenza è la corrispondenza tra la rilevanza biologica e quella statistica di un gene. La rilevanza biologica di un gene può fornire informazioni preziose per la scoperta di funzioni specifiche del gene, la determinazione di gruppi di geni che contribuiscono alla malattia. Queste informazioni possono influenzare le decisioni cliniche e la cura dei pazienti, rendendo la corretta valutazione della rilevanza biologica un processo fondamentale nell’ambito medico.
+
+La seconda conseguenza è derivabile dal problema di inquinamento o contaminazione del campione: questa situazione si verifica quando il campione biologico viene accidentalmente contaminato da batteri, virus o da altri microrganismi durante il processo di prelievo o manipolazione.
+
+# 3. Descrizione del dataset
+
+Il dataset utilizzato, disponibile pubblicamente su UCI, si compone di 303 osservazioni (pazienti) su 55 variabili. Esso riporta diverse informazioni genetiche e mediche relative ai pazienti adulti di età compresa fra 30 e 86 anni, affetti o non da CAD, dell’ospedale di riferimento in Iran. I dati raccolti ricoprono un arco temporale non specificato. Di seguito vengono riportate le variabili di cui si compone il dataset.
+
+| **Variabile**         | **Descrizione**                                                                                                                                       |
+|--------------------------------------|----------------------------------|
+| Age                   | Intervallo di età dei pazienti, compreso tra 30 e 86 anni. Questa variabile indica l'età cronologica del paziente al momento della raccolta dei dati. |
+| Weight                | Peso corporeo dei pazienti, espresso in chilogrammi (48-120 kg).                                                                                      |
+| Sex                   | Sesso biologico dei pazienti (Maschio, Femmina).                                                                                                      |
+| BMI                   | Indice di Massa Corporea (BMI) calcolato come peso (kg) diviso per altezza al quadrato (m²), valori tra 18 e 41.                                      |
+| DM                    | Presenza di diabete mellito (Sì, No).                                                                                                                 |
+| HTN                   | Presenza di ipertensione (Sì, No).                                                                                                                    |
+| Current Smoker        | Indica se il paziente fuma attualmente (Sì, No).                                                                                                      |
+| Ex-Smoker             | Indica se il paziente ha smesso di fumare (Sì, No).                                                                                                   |
+| FH                    | Presenza di una storia familiare di malattie cardiache (Sì, No).                                                                                      |
+| Obesity               | Presenza di obesità (Sì, se BMI \> 25, No altrimenti).                                                                                                |
+| CRF                   | Presenza di insufficienza renale cronica (Sì, No).                                                                                                    |
+| CVA                   | Presenza di un ictus pregresso (Sì, No).                                                                                                              |
+| Airway Disease        | Presenza di malattie delle vie aeree (Sì, No).                                                                                                        |
+| Thyroid Disease       | Presenza di malattie della tiroide (Sì, No).                                                                                                          |
+| CHF                   | Presenza di insufficienza cardiaca congestizia (Sì, No).                                                                                              |
+| DLP                   | Presenza di dislipidemia (Sì, No).                                                                                                                    |
+| BP (blood pressure)   | Pressione sanguigna misurata in mmHg (90-190).                                                                                                        |
+| PR (pulse rate)       | Frequenza del polso misurata in battiti per minuto (50-110).                                                                                          |
+| Edema                 | Presenza di gonfiore nei tessuti (Sì, No).                                                                                                            |
+| Weak peripheral pulse | Polso periferico debole (Sì, No).                                                                                                                     |
+| Lung rales            | Rumori anormali nei polmoni (Sì, No).                                                                                                                 |
+| Systolic murmur       | Presenza di soffio sistolico (Sì, No).                                                                                                                |
+| Diastolic murmur      | Presenza di soffio diastolico (Sì, No).                                                                                                               |
+| Typical Chest Pain    | Dolore toracico tipico (Sì, No).                                                                                                                      |
+| Dyspnea               | Difficoltà respiratoria (Sì, No).                                                                                                                     |
+| Function class        | Classe funzionale dei sintomi (1, 2, 3, 4).                                                                                                           |
+| Atypical              | Dolore toracico atipico (Sì, No).                                                                                                                     |
+| Nonanginal CP         | Dolore toracico non anginoso (Sì, No).                                                                                                                |
+| Exertional CP         | Dolore toracico da sforzo (Sì, No).                                                                                                                   |
+| Low Th Ang            | Angina a bassa soglia (Sì, No).                                                                                                                       |
+| Rhythm                | Tipo di ritmo cardiaco (Sin, AF).                                                                                                                     |
+| Q Wave                | Presenza di onde Q anomale (Sì, No).                                                                                                                  |
+| ST Elevation          | Presenza di elevazione del segmento ST (Sì, No).                                                                                                      |
+| ST Depression         | Presenza di depressione del segmento ST (Sì, No).                                                                                                     |
+| T Inversion           | Presenza di inversione dell'onda T (Sì, No).                                                                                                          |
+| LVH                   | Presenza di ipertrofia ventricolare sinistra (Sì, No).                                                                                                |
+| Poor R progression    | Scarsa progressione dell'onda R (Sì, No).                                                                                                             |
+| FBS                   | Glicemia a digiuno (mg/dl) (62-400).                                                                                                                  |
+| Cr                    | Livello di creatinina (mg/dl) (0.5-2.2).                                                                                                              |
+| TG                    | Livello di trigliceridi (mg/dl) (37-1050).                                                                                                            |
+| LDL                   | Livello di lipoproteine a bassa densità (mg/dl) (18-232).                                                                                             |
+| HDL                   | Livello di lipoproteine ad alta densità (mg/dl) (15-111).                                                                                             |
+| BUN                   | Livello di azoto ureico (mg/dl) (6-52).                                                                                                               |
+| ESR                   | Tasso di sedimentazione degli eritrociti (mm/h) (1-90).                                                                                               |
+| HB                    | Livello di emoglobina (g/dl) (8.9-17.6).                                                                                                              |
+| K                     | Livello di potassio (mEq/lit) (3.0-6.6).                                                                                                              |
+| Na                    | Livello di sodio (mEq/lit) (128-156).                                                                                                                 |
+| WBC                   | Numero di globuli bianchi (cells/ml) (3700-18,000).                                                                                                   |
+| Lymph                 | Percentuale di linfociti (%) (7-60).                                                                                                                  |
+| Neut                  | Percentuale di neutrofili (%) (32-89).                                                                                                                |
+| PLT                   | Numero di piastrine (1000/ml) (25-742).                                                                                                               |
+| EF                    | Frazione di eiezione (%) (15-60).                                                                                                                     |
+| Region with RWMA      | Numero di regioni con anomalie del movimento della parete (0-4).                                                                                      |
+| VHD                   | Gravità della malattia delle valvole cardiache (Normale, Lieve, Moderata, Grave)                                                                      |
+
+# 4. Data WRANGLING
+
+Il "data wrangling," spesso chiamato anche "data munging" rappresenta un passaggio cruciale nell'analisi dei dati. Molto spesso si hanno a disposizione un insieme di dati grezzi provenienti da diverse fonti. Questi dati possono essere disorganizzati, contenere errori, dati mancanti o informazioni in formati diversi. Senza una preparazione adeguata, l'analisi e la modellazione dei dati sarebbero difficili, se non impossibili.
+
+Il data wrangling è il processo di trasformazione dei dati disordinati e sporchi in un formato coerente e adatto all'analisi. Il passaggio comporta molteplici attività, tra cui la pulizia dei dati per correggere errori e rimuovere duplicati, la standardizzazione delle unità di misura, la trasformazione dei dati categorici in forme numeriche comprensibili, e la creazione di nuove variabili o caratteristiche quando necessario.
+
+L'obiettivo finale del data wrangling è creare un dataset pulito, coerente e pronto per essere analizzato, riducendo così i potenziali errori e garantendo che i risultati dell'analisi siano accurati e significativi.
+
+## 4.1 Import del dataset
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(message=FALSE)
+knitr::opts_chunk$set(warning=FALSE)
+
+```
+
+```{r echo=FALSE, fig.align='center', include=FALSE}
+setwd("C:/Users/carme/OneDrive/Desktop/UNIVERSITA 2/ADVANCED STATISTICAL LEARNING II/Parte 1")
+library(readxl)
+library(dplyr)
+library(ggplot2)
+library(corrplot)
+library(cluster)
+library(tidyverse)
+library(plotly)
+library(ggridges)
+library(gridExtra)
+library(caret)
+library(DescTools)
+library(factoextra)
+library(clValid)
+library(gplots)
+library(ROCit)
+library(Factoshiny)
+library(FactoMineR)
+library(LabRS)
+library(ca)
+library("factoextra")
+library(class)
+library(MASS)
+library(stringr)
+library(xtable)
+library('devtools')
+library(ggiraphExtra)
+library(pROC)
+library(gbm)
+library(NeuralNetTools)
+library("cutpointr")
+library("ROCR")    
+library(pec)
+library(prodlim)
+library(timeROC)
+library(survAUC)
+library(survC1)
+library(dplyr)
+library(gt)
+library(kableExtra)
+library(DALEX)
+library(beeswarm)
+
+```
+
+```{r}
+CAD <- read_csv("CAD.csv")
+
+```
+
+## 4.2 Panoramica dei dati
+
+Si ottiene una visulizzazione dell eprime 6 osservazioni per comprendere la struttura del dataset.
+
+```{r}
+head(CAD)
+```
+
+Sono quindi presenti 303 osservazioni relative ai pazienti dell'indagine e 55 variabili di descrizione.
+
+```{r}
+dim(CAD)
+```
+
+## 4.3 Data Cleaning
+
+I dati grezzi sono spesso [disordinati]{style="font-style: italic;"} e [formattati male]{style="font-style: italic;"}. Inoltre, potrebbero mancare definizioni appropriate che tengano conto della scala di misurazione utilizzata.
+
+Per cui la pulizia dei dati consiste nel procedimento mediante il quale si esaminano e si migliorano i dati contenuti nel dataset, con l'obiettivo di assicurare che siano di alta qualità e validi per l'analisi statistica. Le procedure che caratterizzano questo passaggio sono le seguenti:
+
+-   **Analisi dei missing values.** Si verifica la presenza/assenza dei valori mancanti (NA) che può notevolmente influire sull'analisi. Si procede , quindi, decidendo di eliminarli (*na.omit*) sostituendoli con valori reali (esempio: imputazione di media o mediana).
+-   **Individuazione di valori anomali.** Si esamina attentamente il dataset per individuare eventuali valori inesatti o insoliti, e si prendono decisioni su come trattarli. Queste decisioni possono includere l'eliminazione dei valori problematici o la loro sostituzione con valori appropriati.
+-   **Trasformazione delle variabili.** Si verifica che tutte le variabili abbiano la classe appropriata. ([Double o Integer]{style="font-style: italic;"} per i numeri, [factor]{style="font-style: italic;"} per le variabili categoriali, [ordered]{style="font-style: italic;"} per le variabili categoriali ordinate).
+-   **Implementazione di nuove variabili.** Sulla base delle variabili già presenti nel dataset si possono creare delle nuove variabili, ad esempio facendo operazioni matematiche tra due variabili o creando una variabile multilivello sulla base di una variabile numerica.
+
+### 4.3.1 Analisi dei missing values
+
+Si verifica la presenza degli NA nel dataset. Nel dataset non sono presenti NA.
+
+```{r}
+sum(is.na(CAD))
+
+```
+
+### 4.3.2 Trasformazione delle variabili
+
+Dalla tabella delle tipologie di formattazione dei dati, si osserva che molte variabili categoriche sono formattate come numeriche o caratteri (chr). Per garantire una corretta analisi, si procede con la conversione appropriata di queste variabili in fattori.
+
+Inoltre, poiché alcune variabili presentano un numero esiguo di osservazioni per alcune classi di categorie, si è deciso di eliminarle dal dataset poiché non risultano rilevanti per lo studio.
+
+```{r}
+# str(CAD)
+```
+
+```{r}
+char_columns <- sapply(CAD, is.character)
+CAD[char_columns] <- lapply(CAD[char_columns], as.factor)
+
+```
+
+```{r}
+plot_factor_variables <- function(dataset) {
+  factor_vars <- sapply(dataset, is.factor)
+  
+  for (var in names(factor_vars[factor_vars])) {
+    table_data <- table(dataset[[var]])
+    barplot(table_data, main = var, xlab = "Levels", ylab = "Frequency", col = "skyblue")
+  }
+}
+#plot_factor_variables(dataset = CAD)
+
+```
+
+```{r}
+CAD<- CAD%>%
+  dplyr::select(-c(CRF, CVA, `Airway disease`, `Thyroid Disease`, CHF,`Weak Peripheral Pulse`, `Lung rales`, `Diastolic Murmur`, Nonanginal, `Exertional CP`,`LowTH Ang`, `Poor R Progression` ))
+CAD$DM<-as.factor(CAD$DM)
+CAD$HTN<-as.factor(CAD$HTN)
+CAD$`EX-Smoker`<-as.factor(CAD$`EX-Smoker`)
+CAD$FH<-as.factor(CAD$FH)
+CAD$`Typical Chest Pain`<-as.factor(CAD$`Typical Chest Pain`)
+CAD$`Function Class`<-as.factor(CAD$`Function Class`)
+CAD$`Q Wave`<-as.factor(CAD$`Q Wave`)
+CAD$`St Elevation`<-as.factor(CAD$`St Elevation`)
+CAD$`St Depression`<-as.factor(CAD$`St Depression`)
+CAD$Tinversion<-as.factor(CAD$Tinversion)
+#CAD$Obesity <- ifelse(CAD$BMI > 25, "Yes", "No")
+
+```
+
+### 4.3.3 Individuazione di valori anomali
+
+La funzione in output fornisce un resoconto automatico delle statistiche di base per ciascuna variabile nel dataset. Queste statistiche comprendono il valore minimo, il valore massimo, la media, la mediana e la deviazione standard. Se la variabile è numerica, vengono calcolati anche i quartili e il range interquartile. Nel caso in cui la variabile sia di tipo carattere o un factor, la funzione restituirà il conteggio delle osservazioni per ciascun livello o valore univoco presente nella variabile stessa.
+
+L'età dei pazienti varia da un minimo di 30 anni a un massimo di 86 anni, con una media di circa 58,9 anni. Il peso varia da 48 kg a 120 kg, con una media di 73,83 kg. L'altezza varia da 140 cm a 188 cm, con una media di 164,7 cm. L'indice di massa corporea (BMI) varia da 18,12 a 40,90, con una media di 27,25. I 303 campioni sono classificati in due classi principali: CAD (malattia coronarica) e normale. Un campione è classificato come CAD se la stenosi delle arterie coronarie raggiunge o supera il 50%, altrimenti appartiene alla classe normale. Dei 303 campioni, 216 (71,29%) appartengono alla classe CAD e 87 (28,71%) alla classe normale.
+
+| **Variabile**                          | **Min.** | **1st Qu.** | **Mediana** | **Media** | **3rd Qu.** | **Max.** | **Frequenze**                                    |
+|---------|---------|---------|---------|---------|---------|---------|-----------|
+| **Age (anni)**                         | 30.0     | 51.0        | 58.0        | 58.9      | 66.0        | 86.0     |                                                  |
+| **Weight (kg)**                        | 48.0     | 65.0        | 74.0        | 73.83     | 81.0        | 120.0    |                                                  |
+| **Length (cm)**                        | 140.0    | 158.0       | 165.0       | 164.7     | 171.0       | 188.0    |                                                  |
+| **Sex**                                |          |             |             |           |             |          | F: 127, M: 176                                   |
+| **BMI (Kg/m²)**                        | 18.12    | 24.51       | 26.78       | 27.25     | 29.41       | 40.90    |                                                  |
+| **DM (Diabetes)**                      |          |             |             |           |             |          | 0: 213, 1: 90                                    |
+| **HTN (Hypertension)**                 |          |             |             |           |             |          | 0: 124, 1: 179                                   |
+| **Current Smoker**                     | 0.0      | 0.0         | 0.0         | 0.2079    | 0.0         | 1.0      |                                                  |
+| **Ex-Smoker**                          | 0.0      | 0.0         | 0.0         | 0.0       | 0.0         | 1.0      | 0: 293, 1: 10                                    |
+| **FH (Family History)**                |          |             |             |           |             |          | 0: 255, 1: 48                                    |
+| **Obesity**                            |          |             |             |           |             |          | N: 92, Y: 211                                    |
+| **DLP (Dyslipidemia)**                 |          |             |             |           |             |          | N: 191, Y: 112                                   |
+| **BP (mmHg)**                          | 90.0     | 120.0       | 130.0       | 129.6     | 140.0       | 190.0    |                                                  |
+| **PR (Pulse Rate)**                    | 50.0     | 70.0        | 70.0        | 75.14     | 80.0        | 110.0    |                                                  |
+| **Edema**                              |          |             |             |           |             |          | N: 262, Y: 41                                    |
+| **Systolic Murmur**                    |          |             |             |           |             |          | N: 262, Y: 41                                    |
+| **Typical Chest Pain**                 |          |             |             |           |             |          | 0: 139, 1: 164                                   |
+| **Dyspnea**                            |          |             |             |           |             |          | N: 169, Y: 134                                   |
+| **Function Class**                     | 0        | 0           | 0           | 0         | 1           | 4        | 0: 211, 1: 1, 2: 73, 3: 18                       |
+| **Atypical**                           |          |             |             |           |             |          | N: 210, Y: 93                                    |
+| **Q Wave**                             |          |             |             |           |             |          | 0: 287, 1: 16                                    |
+| **ST Elevation**                       |          |             |             |           |             |          | 0: 289, 1: 14                                    |
+| **ST Depression**                      |          |             |             |           |             |          | 0: 232, 1: 71                                    |
+| **T Inversion**                        |          |             |             |           |             |          | 0: 213, 1: 90                                    |
+| **LVH (Left Ventricular Hypertrophy)** |          |             |             |           |             |          | N: 283, Y: 20                                    |
+| **FBS (mg/dl)**                        | 62.0     | 88.5        | 98.0        | 119.2     | 130.0       | 400.0    |                                                  |
+| **Cr (mg/dl)**                         | 0.5      | 0.9         | 1.0         | 1.056     | 1.2         | 2.2      |                                                  |
+| **TG (mg/dl)**                         | 37.0     | 90.0        | 122.0       | 150.3     | 177.0       | 1050.0   |                                                  |
+| **LDL (mg/dl)**                        | 18.0     | 80.0        | 100.0       | 104.6     | 122.0       | 232.0    |                                                  |
+| **HDL (mg/dl)**                        | 15.9     | 33.5        | 39.0        | 40.23     | 45.5        | 111.0    |                                                  |
+| **BUN (mg/dl)**                        | 6.0      | 13.0        | 16.0        | 17.5      | 20.0        | 52.0     |                                                  |
+| **ESR (mm/h)**                         | 1.0      | 9.0         | 15.0        | 19.46     | 26.0        | 90.0     |                                                  |
+| **HB (g/dl)**                          | 8.9      | 12.2        | 13.2        | 13.15     | 14.2        | 17.6     |                                                  |
+| **K (mEq/lit)**                        | 3.0      | 3.9         | 4.2         | 4.231     | 4.5         | 6.6      |                                                  |
+| **Na (mEq/lit)**                       | 128      | 139         | 141         | 141       | 143         | 156      |                                                  |
+| **WBC (cells/ml)**                     | 3700     | 5800        | 7100        | 7562      | 8800        | 18000    |                                                  |
+| **Lymph (%)**                          | 7.0      | 26.0        | 32.0        | 32.4      | 39.0        | 60.0     |                                                  |
+| **Neut (%)**                           | 32.0     | 52.5        | 60.0        | 60.15     | 67.0        | 89.0     |                                                  |
+| **PLT (1000/ml)**                      | 25.0     | 183.5       | 210.0       | 221.5     | 250.0       | 742.0    |                                                  |
+| **EF-TTE (%)**                         | 15.0     | 45.0        | 50.0        | 47.23     | 55.0        | 60.0     |                                                  |
+| **Region RWMA**                        | 0.0      | 0.0         | 0.0         | 0.6205    | 1.0         | 4.0      |                                                  |
+| **VHD (Valvular Heart Disease)**       |          |             |             |           |             |          | Mild: 149, Moderate: 27, Normal: 116, Severe: 11 |
+| **Cath**                               |          |             |             |           |             |          | Cad:216, Normal:87                               |
+
+```{r}
+#summary(CAD)
+```
+
+Questi indicatori forniscono una panoramica completa delle condizioni di vita tenendo conto ,tuttavia, delle differenze che caratterizzano ciascun paziente. L'analisi dettagliata di ciascuna variabile verrà aggiunta in *appendice.*
+
+# 5. Analisi delle associazioni fra features
+
+Nell’ambito dell’analisi è stato condotto uno studio per esaminare le associazioni tra diverse variabili di interesse. Per valutare il legame e il grado di associazione si ricorre all’analisi delle corrispondenze multiple e al test del chi-quadro.
+
+## 5.1 Test del Chi-Quadro
+
+Tramite il test del chi quadrato di Pearson, si intende controllare se l’associazione fra due variabili sia statisticamente significativa. Il test del chi quadrato confronta i valori osservati di frequenza in una tabella di contingenza con i valori attesi, che rappresentano l’ipotesi di indipendenza tra le variabili, l’ipotesi nulla ($H_0$) del test afferma che le due variabili sono indipendenti l’una dall’altra, mentre l’ipotesi alternativa ($H_1$) afferma che le due variabili sono associate in qualche modo. Le caratteristiche demografiche, di laboratorio e cliniche sono state confrontate sulla base dello status del paziente, tenendo conto dei risultati del test. Poiché il test viene effettuato solo su variabili categoriche, si è ritenuto necessario stabilire una soglia per la variabile BMI numerica poiché considerata fondamentale nello studio. La soglia ottimale è stata individuata tenendo conto dei risultati dell’analisi effettuata dallo Studio Danone sul sovrappeso e obesità (BMI\>25) (Obesity) [1]. Inoltre, si ottengono delle variabili categoriali fattorizzate per le informazioni riguardanti il battito cardiaco oltre che si mantengono le informazioni circa l'ecografia, poichè secondo [2] in uno studio con pazienti malati di CAD, sono presenti evidenze di studi randomizzati che supportano il ruolo dell'ecocardiografia come guida processo decisionale clinico. Dallo studio ORBITA (Objective Randomized Blinded Investigation With Optimal Medical Therapy of Angioplasty in Stable Angina), un risultato secondario era una maggiore riduzione del punteggio tra i pazienti con CAD trattati con intervento coronarico percutaneo (PCI) rispetto con placebo (P0,0001). 
+
+Stabilito il valore di $\alpha$=0.05,
+
+-   La probabilità che l’associazione sia dovuta al caso è prossima allo zero per le variabili: DM, HTN, TYPICAL CHEST PAIN, DYSPNEA, ATYPICAL, QWAVE, ST ELEVATION, ST DEPRESSION,TINVERSION E VHD. L’ipotesi nulla viene respinta e l’associazione è statisticamente significativa. Il valore di associazione maggiore si registra con la variabile TYPICAL CHEST PAIN;
+
+-   Diversamente per altre variabili , il valore del p-value porta a non rifiutare l’ipotesi nulla stabilendo l’indipendenza fra le coppie di variabili.
+
+La Tabella riporta il valore associato del p-value per ciascuna categoria oltre che la partizione utile per descrivere le caratteristiche principali della popolazione. In totale sono stati osservati 303 pazienti , di cui 127 (41.91%) sono maschi e 176 (58.1%) sono femmine, l’età mediana riscontrata è 58 anni.
+
+La prevalenza di CAD nell’intera coorte è del 73%. Dall’analisi comparativa della malattia in relazione alle caratteristiche demografiche, è emerso che i pazienti con il diabete mellito hanno una maggiore probabilità di ricevere diagnosi di CAD rispetto a quelli che non lo possiedono (88% vs 66%). Inoltre, è stato osservato che i pazienti con ipertensione presentano una maggiore frequenza in osservazioni per CAD che rispetto lo stato normale(147 vs 69). Al 93% dei pazienti , con dolore toracico tipico, è stato diagnosticata CAD mentre solo il 44% di coloro che non presentano il dolore è stata diagnosticata CAD. Inoltre, contrariamente a quanto emerso per il dolore toracico atipico, per il dolore toracico atipico il maggior numero di pazienti a cui viene diagnosticata la CAD non presentano questo sintomo.\
+Un altro dato significativo riguarda i pazienti che presentano difficoltà respiratoria. Questo gruppo ha una percentuale di prognosi del 64%, suggerendo che la presenza di questo sintomo è associata a una maggiore probabilità di diagnosi della malattia.
+
+Per quel che concerne le variabili relative alle informazioni e assunzioni derivate dall'elettrocardiogramma, la non presenza di onde Q anomale ha un supporto di definizione maggiore: a 200 pazienti in questa categorie è stata diagnostica CAD mentre a 87 pazienti no. Lo stesso vale per la non presenza di elevazione del segmento. A differenza di queste , la presenza di depressione del segmento invece ha visto l'assegnazione della malattia all'83% dei pazienti mentre solo il 67% che non lo presentavano hanno avuto la stessa diagnosi.
+
+La categoria della gravità delle malattie delle valvole cardiache che presenta il maggior numero di pazienti a cui è sta diagnosticata la malattia nella coorte è quella mild, con una percentuale del 50%%, mentre solo il 22% dei pazienti in questa categoria non ha registrato la malattia.
+
+```{r}
+
+
+vcramer <- function(x, y) {
+  tab <- table(x, y)
+  n <- (min(nrow(tab), ncol(tab))-1) * margin.table(tab)
+  chiq <- as.numeric(chisq.test(tab, correct = FALSE)$statistic)
+  p <- chisq.test(tab, correct = FALSE)$p.value
+  v = sqrt(chiq / n)
+  res <- c("chi.sq" = chiq, "p" = p, "v di Cramer" = v)
+  return(res)
+}
+
+calculate_vcramer <- function(data, target) {
+  results <- data.frame(Variable = character(),
+                        Levels = character(),
+                        Total = integer(),
+                        Target_Positive = integer(),
+                        Target_Negative = integer(),
+                        Positive_Percentage = numeric(),  
+                        Negative_Percentage = numeric(), 
+                        P.Value = numeric(),
+                        V.Cramer = numeric(),
+                        stringsAsFactors = FALSE)
+  
+  factor_vars <- names(data)[sapply(data, is.factor)]
+  for (var in factor_vars) {
+    if (var != target) {
+      tab <- table(data[[var]], data[[target]])
+      test_result <- vcramer(data[[var]], data[[target]])
+      for (level in rownames(tab)) {
+        total <- sum(tab[level, ])
+        positive <- tab[level, "Cad"]  
+        negative <- tab[level, "Normal"]  
+        positive_percentage <- (positive / total) * 100
+        negative_percentage <- (negative / total) * 100
+        
+        results <- rbind(results, data.frame(Variable = var,
+                                             Levels = level,
+                                             Total = total,
+                                             Target_Positive = positive,
+                                             Target_Negative = negative,
+                                             Positive_Percentage = positive_percentage,
+                                             Negative_Percentage = negative_percentage,
+                                             P.Value = test_result["p"],
+                                             V.Cramer = test_result["v di Cramer"]))
+      }
+    }
+  }
+  return(results)
+}
+
+results <- calculate_vcramer(CAD, "Cath")
+#print(results)
+
+
+```
+
+| Variable           | Livelli  | Totale | Target Positive | Target Negative | P.Value           | V.Cramer |
+|-----------|-----------|-----------|-----------|-----------|-----------|-----------|
+| Sex                | Fmale    | 127    | 86 (67.72%)     | 41 (32.28%)     | 0.243             | 0.067    |
+|                    | Male     | 176    | 130 (73.86%)    | 46 (26.14%)     | 0.243\*           | 0.067    |
+| DM                 | 0        | 213    | 136 (63.85%)    | 77 (36.15%)     | 0.00001           | 0.253    |
+|                    | 1        | 90     | 80 (88.89%)     | 10 (11.11%)     | 0.00001\*         | 0.253    |
+| HTN                | 0        | 124    | 69 (55.65%)     | 55 (44.35%)     | 0.00000\*\*\*     | 0.288    |
+|                    | 1        | 179    | 147 (82.12%)    | 32 (17.88%)     | 0.00000\*\*\*     | 0.288    |
+| EX-Smoker          | 0        | 293    | 208 (70.99%)    | 85 (29.01%)     | 0.53572           | 0.036    |
+|                    | 1        | 10     | 8 (80.00%)      | 2 (20.00%)      | 0.53572           | 0.036    |
+| FH                 | 0        | 255    | 180 (70.59%)    | 75 (29.41%)     | 0.53540           | 0.036    |
+|                    | 1        | 48     | 36 (75.00%)     | 12 (25.00%)     | 0.53540           | 0.036    |
+| Obesity            | N        | 92     | 67 (72.83%)     | 25 (27.17%)     | 0.69581           | 0.02246  |
+|                    | Y        | 211    | 149 (70.62%)    | 62 (29.38%)     | 0.69581           | 0.02246  |
+| DLP                | N        | 191    | 137 (71.73%)    | 54 (28.27%)     | 0.82479           | 0.01272  |
+|                    | Y        | 112    | 79 (70.54%)     | 33 (29.46%)     | 0.82479           | 0.01272  |
+| Systolic Murmur    | N        | 262    | 187 (71.37%)    | 75 (28.63%)     | 0.93263           | 0.00486  |
+|                    | Y        | 41     | 29 (70.73%)     | 12 (29.27%)     | 0.93263           | 0.00486  |
+| Typical Chest Pain | 0        | 139    | 62 (44.60%)     | 77 (55.40%)     | 3.34442e-21\*\*\* | 0.543    |
+|                    | 1        | 164    | 154 (93.90%)    | 10 (6.10%)      | 3.34442e-21\*\*\* | 0.543    |
+| Dyspnea            | N        | 169    | 129 (76.33%)    | 40 (23.67%)     | 0.02929\*         | 0.12521  |
+|                    | Y        | 134    | 87 (64.93%)     | 47 (35.07%)     | 0.02929\*         | 0.12521  |
+| Function Class     | 0        | 211    | 145 (68.72%)    | 66 (31.28%)     | 0.13938           | 0.13457  |
+|                    | 1        | 1      | 0 (0.00%)       | 1 (100.00%)     | 0.13938           | 0.13457  |
+|                    | 2        | 73     | 56 (76.71%)     | 17 (23.29%)     | 0.13938           | 0.13457  |
+|                    | 3        | 18     | 15 (83.33%)     | 3 (16.67%)      | 0.13938           | 0.13457  |
+| Atypical           | N        | 210    | 176 (83.81%)    | 34 (16.19%)     | 4.48991e-13\*\*\* | 0.41592  |
+|                    | Y        | 93     | 40 (43.01%)     | 53 (56.99%)     | 4.48991e-13\*\*\* | 0.41592  |
+| Q Wave             | 0        | 287    | 200 (69.69%)    | 87 (30.31%)     | 0.00910\*\*\*     | 0.14985  |
+|                    | 1        | 16     | 16 (100.00%)    | 0 (0.00%)       | 0.00910\*\*\*     | 0.14985  |
+| St Elevation       | 0        | 289    | 202 (69.90%)    | 87 (30.10%)     | 0.01504\*\*       | 0.13968  |
+|                    | 1        | 14     | 14 (100.00%)    | 0 (0.00%)       | 0.01504\*\*       | 0.13968  |
+| St Depression      | 0        | 232    | 157 (67.67%)    | 75 (32.33%)     | 0.01194           | 0.14443  |
+|                    | 1        | 71     | 59 (83.10%)     | 12 (16.90%)     | 0.01194\*\*       | 0.14443  |
+| Tinversion         | 0        | 213    | 137 (64.32%)    | 76 (35.68%)     | 3.71919e-05\*\*\* | 0.23693  |
+|                    | 1        | 90     | 79 (87.78%)     | 11 (12.22%)     | 3.71919e-05\*\*\* | 0.23693  |
+| LVH                | N        | 283    | 200 (70.67%)    | 83 (29.33%)     | 0.37284           | 0.05120  |
+|                    | Y        | 20     | 16 (80.00%)     | 4 (20.00%)      | 0.37284           | 0.05120  |
+| VHD                | mild     | 149    | 115 (77.18%)    | 34 (22.82%)     | 0.00103\*\*\*     | 0.23121  |
+|                    | Moderate | 27     | 22 (81.48%)     | 5 (18.52%)      | 0.00103\*\*\*     | 0.23121  |
+|                    | N        | 116    | 76 (65.52%)     | 40 (34.48%)     | 0.00103\*\*\*     | 0.23121  |
+|                    | Severe   | 11     | 3 (27.27%)      | 8 (72.73%)      | 0.00103\*\*\*     | 0.23121  |
+
+## 5.2 ACM
+ 
+In seguito, è stato applicato l’analisi delle corrispondenze multiple il cui fine ultimo risiede nell’esplorazione e visualizzazione delle associazioni tra le categorie delle variabili prese in esame. La figura mostra lo screeplot delle dimensioni ottenute in seguito all’applicazione della analisi delle corrispondenze multiple. Sull’asse delle ordinate viene rappresentata la varianza spiegata da ciascuna componente, mentre sull’asse delle ascisse viene rappresentato il numero di componenti. La visualizzazione rende chiaro che la varianza e l’inerzia totale spiegata da ciascun fattore diminuisce a mano a mano che queste diventano maggiori in numero. Il punto in cui la curva inizia a livellarsi è definito “elbow point” indicando il numero di dimensioni significative, questo potrebbe essere individuato tra la componente numero 4 e la componente numero 5. Solitamente queste componenti riescono a spiegare le principali associazioni o pattern nei dati.
+
+```{r, include=FALSE}
+acm<-CAD %>% dplyr::select(where(is.factor))
+res.mca<-MCA(acm)     
+
+
+```
+
+```{r}
+
+eig.val <- get_eigenvalue(res.mca)
+fviz_screeplot(res.mca, addlabels = TRUE, ylim = c(0, 50))
+```
+
+La visualizzazione bidimensionale degli assi principali è presentata nella Figura sottostante. Il grafico dell’analisi delle corrispondenze multiple viene creato proiettando le variabili categoriche su un piano bidimensionale in modo da visualizzare le loro relazioni. La rappresentazione è composta da un piano cartesiano con due assi principali. L’asse x rappresenta la prima componente principale dell’analisi delle corrispondenze multiple, mentre l’asse y rappresenta la seconda componente principale. L’inerzia totale spiegata dal grafico dell’analisi delle corrispondenze multiple basato sui primi due assi fattoriali, ovvero la misura del grado di dispersione del profilo attorno al profilo medio, è del circa 20%. Ogni variabile categoriale viene rappresentata come un punto sul grafico, e la posizione del punto indica la relazione tra le categorie di quella variabile e le altre variabili nel set di dati. Le variabili che sono più vicine tra loro sul grafico MCA sono quelle correlate positivamente, mentre le variabili che sono lontane l’una dall’altra sono correlate negativamente. Inoltre, le variabili vengono designate in base al loro contributo che viene definito sulla scala di colori al fianco del grafico. Ciò permette di distinguere i punti lontani dall’origine degli assi (colorati in rosso), i quali rappresentano le variabili che contribuiscono maggiormente all’analisi delle corrispondenze, dai punti vicini agli assi (colorati di azzurro), espressione di una minore contribuzione delle stesse. Le righe e le colonne che sono simili in base ai loro valori di variabile, tendono ad essere posizionate vicine tra loro nello spazio, mentre quelle che sono dissimili tendono a essere posizionate lontano l’una dall’altra. Ciò consente di individuare facilmente le relazioni tra le righe e le colonne della tabella di dati, facilitando l’analisi e la comprensione. La presenza di linee tratteggiate che collegano le categorie di diverse variabili, esprime un’associazione significativa.
+
+Di seguito quelle essenziali e da prendere in considerazione:
+
+1)  La relazione tra valvulopatia severa e presenza di soffio sistolico (VHD_Severe (Valvulopatia cardiaca severa) e Systolic Murmur_Y (Presenza di soffio sistolico)). Queste due categorie sono vicine sul grafico, indicando che i pazienti con valvulopatia cardiaca severa spesso hanno anche un soffio sistolico;
+2)  L’elevato contributo della relazione tra pazienti che mostrano sintomi di dolore toracico tipico e presenza di onde anomale nell'ECG;
+3)  La vicinanza tra presenza di obesità e diabete mellito, merita una nota di approfondimento. La vicinanza tra queste categorie suggerisce una frequente co-occorrenza di obesità e diabete mellito nei pazienti;
+4)  Function Class_3. Questa categoria è distante dal centro e colorata in arancione, indicando una contribuzione alta e specifica alla variabilità nei dati.Spesso si associa con condizioni severe come "VHD_Severe" e "Systolic Murmur_Y";
+5)  Gli ex-fumatori mostrano relazioni con variabili di malattia cardiaca come "Typical Chest Pain_1" e "LVH_N" (assenza di ipertrofia ventricolare sinistra).
+6)  Presenza di difficoltà respiratoria e CHF_1 (Presenza di insufficienza cardiaca): la loro vicinanza suggerisce che la difficoltà respiratoria è comunemente associata a insufficienza cardiaca congestizia.
+
+```{r}
+
+fviz_mca_var(res.mca, col.var = "contrib",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), 
+             repel = TRUE, # avoid text overlapping (slow)
+             ggtheme = theme_minimal()
+)
+```
+
+Si consideri l’analisi particolare di diagnosi come punto di partenza nella figura successiva, è possibile evidenziare sul biplot la disposizione degli individui. I punti si diffondono intorno agli assi principali. Il primo asse fattoriale distingue situazioni relative a pazienti a cui è stata diagnosticata la malattia a destra, da pazienti senza CAD a sinistra. I primi fortemente caratterizzati da situazioni gravose in termini medici, si fa riferimento a pazienti on classe di sintomi 3, obesi, con dolori tipici, presenza di depressione del segmento ecg,ex fumatori, con un BMI\>25 ; I secondi, avvantaggiati in termini medici, non mostrano inversione dell T nell ECG, e non ottengono la diagnosi di CAD. I risultati riportati dall’analisi delle corrispondenze multiple potrebbero evidenziare andamenti particolari nella popolazione fornendo un punto di partenza per l’analisi esplorativa.
+
+```{r}
+fviz_mca_ind(res.mca, 
+             label = "none", # hide individual labels
+             habillage = CAD$Cath, # color by groups 
+             palette = c("#00AFBB", "#E7B800"),
+             addEllipses = TRUE, ellipse.type = "confidence",
+             ggtheme = theme_minimal()) 
+```
+
+## 5.4 EDA
+
+Per quel che concerne l'analisi univariata delle variabili e eventuali approfondimenti sulle singole variabili, è presente nell'appendice una dettagliata analisi dei dati. Per cui ci si concentrerà sul'analisi bivariata e multivariata.
+
+### Analisi Bivariata
+
+L'analisi bivariata permette di lavorare su ogni unità statistica e rilevare *congiuntamente* i due caratteri statistici $X e Y$, generando la rilevazione doppia $(X,Y)$. Si può trattare di due caratteri qualitativi, due caratteri quantitativi o un carattere qualitativo e uno quantitativo.
+
+Prima di analizzare le relazioni fra variabili si rende necessaria un'analisi preliminare degli indici e misure che caratterizzano tali rapporti.
+
+### Covarianza
+
+Il coefficiente è il seguente:
+
+$$cov(X,Y)= \frac{1}{n} \sum^n_{i=1}((x_i-\overline x)(y_i-\overline y))$$
+
+-   se $cov=0$, $X e Y$ sono incorrelate, non esiste alcun legame lineare fra di loro;
+-   se $cov>0$, $X e Y$ sono correlate positivamente; a variazioni positive (negative) di una variabile corrispondono variazioni positive(negative) dell'altra variabile;
+-   se $cov<0$, $X e Y$ sono correlate negativamente; a variazioni positive di una variabile, corrispondono in media, variazioni negative dell'altra variabile e viceversa;
+
+Nonostante la grandezza del dataframe, si è cercato di cogliere i tratti essenziali dalla matrice di covarianza:
+
+-   Per le relazioni positive significative:
+    1.  TG e WBC: C'è una forte covarianza positiva tra i livelli di trigliceridi e il numero di globuli bianchi, suggerendo che alti livelli di trigliceridi possono essere associati a un aumento del numero di globuli bianchi.
+    2.  WBC e Neut (neutrofili): C'è una forte covarianza positiva tra il numero di globuli bianchi e la percentuale di neutrofili, il che è atteso, poiché i neutrofili sono una sottoclasse dei globuli bianchi.
+    3.  TG e LDL (lipoproteine a bassa densità): La covarianza positiva significativa indica che alti livelli di trigliceridi tendono a essere associati ad alti livelli di LDL, che sono entrambi fattori di rischio per le malattie cardiovascolari.
+-   Per le relazioni negative significative:
+    1.  TG e Age (età): C'è una covarianza negativa significativa tra i livelli di trigliceridi e l'età, suggerendo che i livelli di trigliceridi tendono a diminuire con l'aumentare dell'età dei pazienti.
+    2.  TG e HDL (lipoproteine ad alta densità): C'è una covarianza negativa significativa tra i livelli di trigliceridi e i livelli di HDL, il che è atteso poiché HDL è considerato il "colesterolo buono" e spesso ha un comportamento inverso rispetto ai trigliceridi.
+    3.  FBS (glicemia a digiuno) e TG: Anche se questo è positivo, è importante notarlo perché un alto livello di glicemia a digiuno è associato a un alto livello di trigliceridi, suggerendo una correlazione con il diabete mellito.
+
+```{r}
+data_new<-CAD%>%
+  dplyr::select(where(is.numeric))
+#cov(data_new)
+
+```
+
+### Heatmap per la Correlazione
+
+La correlazione può essere positiva, quando le variazioni delle due variabili vanno nella stessa direzione, o negativa, quando le variazioni delle due variabili vanno in direzioni opposte. L'espressione del coefficiente di correlazione avviene attraverso un valore, che varia da -1 a +1. Un coefficiente di correlazione di 0 indica l'assenza di correlazione, mentre un valore di +1 o -1 indica una correlazione perfetta tra le due variabili positivamente o negativamente. E' possibile quindi procedere alla visualizzazione del suddetto coefficiente attraverso un grafico pheatmap, utilizzato per creare mappe di calore, ovvero grafici in cui le celle di una tabella sono colorate in base al loro valore, al fine di evidenziare modelli o tendenze nei dati.Le righe e le colonne del grafico rappresentano le variabili numeriche, come prima descritte. La scala di valori rappresentata dalla legenda posizionata a destra è espressione del grado di correlazione fra variabili. Per cui, variabili che presentano un grado di associazione molto elevato , positivo, avranno in corrispondenza del match riga-colonna un colore tendente al rosso/arancione. Una casella colorata di giallo indica un'assenza di correlazione; una casella colorata celeste, tendente al blu scuro, indica una debole o forte associazione negativa. Risulta essenziale denotare che è una matrice simmetrica, la diagonale principale è colorata di rosso scuro poiché riflette un ovvia associazione pari a 1 della variabile con sé stessa, per cui tutto ciò che si ripete nella parte superiore della diagonale si ripete nella parte inferiore della diagonale.
+
+Degna di nota la forte correlazione negativa tra Nut e Lymph.
+
+```{r}
+C<- cor(data_new)
+pheatmap::pheatmap(C)
+
+
+```
+
+## EDA
+
+Successivamente, è stata condotta un’analisi esplorativa dei dati per ottenere una comprensione approfondita delle informazioni. Il criterio di analisi ha tenuto conto dei risultati ottenuti precedentemente.
+
+La coorte inclusa nello studio è costituita da pazienti con età compresa tra 30 e 86 anni. Nel seguente boxplot viene effettuata una panoramica dell'età dei pazienti rispetto al genere, prognosi e diabete mellito.
+
+Dalla Figura emerge una predominanza significativa di pazienti che non presentano il diabete mellito . Questa manifestazione è supportata da boxplot più ampi, indicando una maggiore variabilità dei dati. Inoltre, i valori delle mediane differiscono in base al genere e alla presenza di diabete. Per il gruppo di pazienti che non ha il diabete: l'età mediana per le donne che non hanno CAD è intorno ai 65 anni con una distribuzione che va dai 55 ai 75 anni circa; per la stessa categoria ma con diagnosi di malattia l'età mediana è simile, ma la distribuzione è più ampia con più outlier verso gli 80 anni. Per i maschi con diagnosi di malattia normale l'età mediana è intorno ai 55 anni, con una distribuzione più ampia rispetto alle femmine. Per il gruppo di pazienti che sviluppa il diabete: la mediana delle donne , con CAD, è simile ai pazienti senza diabete, ma la distribuzione è più stretta. Mentre per gli uomini l'età mediana è la più bassa tra tutti i gruppi maschili, con una distribuzione ampia e alcuni outlier. Per cui, i pazienti con malattia coronarica, tendono ad essere più anziani rispetto a quelli senza questa patologia. La presenza di diabete mellito sembra influenzare ulteriormente l'età dei pazienti con malattia coronarica, soprattutto tra i maschi. Inoltre, le donne con malattia coronarica tendono ad essere più anziane rispetto agli uomini con la stessa condizione.
+
+```{r}
+ggplot(CAD, aes(x=Sex, y=Age, colour=`Cath` )) + 
+  geom_boxplot()+facet_wrap(~CAD$DM)+scale_color_brewer(palette = "Paired")
+```
+
+Come da evidenza riportata dall’analisi delle corrispondenze viene investigata la relazione tra pazienti che mostrano sintomi di dolori tipici e presenza di ipertrofia ventricolare. La prevalenza di soggetti che sperimentano dolori tipici è del 54%. I risultati riportano che, la presenza di ipertrofia ventricolare sinistra, implica che la percentuale di pazienti che ottengono la diagnosi di CAD è maggiore nel caso in cui si hanno sintomi di dolori tipici, rispetto ai casi in cui non sono presenti sintomi (1% vs 60%). Di conseguenza, emerge una connessione significativa tra a presenza di sintomi e iperventilazione. Nel migliore dei casi, quando i pazienti non hanno ipertrofia ventricolare e non hanno sintomi, la probabilità di non avere la diagnosi aumenta.
+
+I risultati non sono per nulla in contrasto con la letteratura, l LVH è infatti riconosciuto come un marcatore significativo. Questa condizione è associata ad un aumento del rischio di CAD perché l'ipertrofia ventricolare sinistra può essere una risposta all'ipertensione, che è un noto fattore di rischio per CAD; oltrechè, l'aumento della massa ventricolare richiede più ossigeno e sangue, ma le arterie coronarie potrebbero non essere in grado di fornire abbastanza sangue, specialmente se sono già parzialmente ostruite.[3]
+
+Ancora, i sintomi di dolori toracici tipici, spesso descritti come un'oppressione o dolore al petto che può irradiarsi a braccia, collo o schiena, sono un segno classico di ischemia cardiaca, che è spesso causata da CAD. La presenza di questi sintomi aumenta significativamente la probabilità di diagnosi di CAD perché i sintomi indicano che il cuore potrebbe non ricevere abbastanza ossigeno, suggerendo una possibile ostruzione nelle arterie coronarie.[4]
+
+```{r}
+
+data_mt<-CAD%>%
+  filter(`Typical Chest Pain`=='0')
+tab2<-table(data_mt$LVH, data_mt$Cath)
+
+df <- data.frame(value = prop.table(tab2[1,]),
+                 group = colnames(tab2))
+
+hsize <- 4
+
+
+df1 <- df %>% 
+  mutate(x = hsize)
+
+
+plot1<-ggplot(df1, aes(x = hsize, y = value, fill = group)) +
+  geom_col(color = "black") +
+  geom_text(aes(label = c('43%','56%')),
+            position = position_stack(vjust = 0.5)) +
+  coord_polar(theta = "y") +
+  scale_fill_manual(values =c('#F0F8FF','#0095B6'))+
+  xlim(c(0.2, hsize + 0.5)) +  theme(panel.background = element_rect(fill = "white"),
+                                     panel.grid = element_blank(),
+                                     axis.title = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     axis.text = element_blank())+ggtitle('LVH NO per Assenza di dolori')
+
+
+df2 <- data.frame(value = prop.table(tab2[2,]),
+                  group = colnames(tab2))
+
+hsize <- 4
+library(ggpubr)
+
+df2 <- df2 %>% 
+  mutate(x = hsize)
+
+plot2<-ggplot(df2, aes(x = hsize, y = value, fill = group)) +
+  geom_col(color = "black") +
+  geom_text(aes(label = c( '60%','40%')),
+            position = position_stack(vjust = 0.5)) +
+  coord_polar(theta = "y") +
+  scale_fill_brewer(palette = "Blues") +
+  xlim(c(0.2, hsize + 0.5)) +
+  theme(panel.background = element_rect(fill = "white"),
+        panel.grid = element_blank(),
+        axis.title = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text = element_blank())+ggtitle('LVH SI per Assenza di dolori')
+
+data_wt<-CAD%>%
+  filter(`Typical Chest Pain`=='1')
+
+tab3<-table(data_wt$LVH, data_wt$Cath)
+df3 <- data.frame(value = prop.table(tab3[1,]),
+                  group = colnames(tab3))
+
+hsize <- 4
+
+
+df3 <- df3 %>% 
+  mutate(x = hsize)
+
+
+plot3<-ggplot(df3, aes(x = hsize, y = value, fill = group)) +
+  geom_col(color = "black") +
+  geom_text(aes(label = c('93%','7%')),
+            position = position_stack(vjust = 0.5)) +
+  coord_polar(theta = "y") +
+  scale_fill_manual(values =c('#F0F8FF','#0095B6'))+
+  xlim(c(0.2, hsize + 0.5)) +  theme(panel.background = element_rect(fill = "white"),
+                                     panel.grid = element_blank(),
+                                     axis.title = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     axis.text = element_blank())+ggtitle('LVH NO per Presenza di dolori')
+
+
+df4 <- data.frame(value = prop.table(tab3[2,]),
+                  group = colnames(tab3))
+
+hsize <- 4
+library(ggpubr)
+f4 <- df4 %>% 
+  mutate(x = hsize)
+
+plot4<-ggplot(df4, aes(x = hsize, y = value, fill = group)) +
+  geom_col(color = "black") +
+  geom_text(aes(label = c( '1%','0%')),
+            position = position_stack(vjust = 0.5)) +
+  coord_polar(theta = "y") +
+  scale_fill_brewer(palette = "Blues") +
+  xlim(c(0.2, hsize + 0.5)) +
+  theme(panel.background = element_rect(fill = "white"),
+        panel.grid = element_blank(),
+        axis.title = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text = element_blank())+ggtitle('LVH SI per Presenza di dolori')
+
+ggarrange(plot2, plot4,plot1,plot3,nrow=2,ncol=2)
+```
+
+Ancora, la Figura fornisce un grafico a barre sovrapposte che visualizza le frequenze di soffio sistolico rispetto alle diverse categorie di valvulopatia cardiaca. Le categorie di valvulopatia sono rappresentati come righe orizzontali nel grafico. La lunghezza totale di ogni riga rappresenta il 100% dei pazienti coinvolti nello studio. Le differenze nella lunghezza dei segmenti colorati all’interno di ogni riga riflettono le diverse frequenze associate alle diverse categorie. La categoria *Severe* presenta una frequenza di soffio sistolico più elevata, apri all'80% della stessa. Al contrario, la frequenza più bassa è mostrata nella categoria *N*, con quasi il 93% di pazienti senza soffio sistolico.
+
+```{r}
+
+ChemioMort <- CAD %>%
+  dplyr::select(`VHD`,`Systolic Murmur`) 
+theme_medical <- function() {
+  theme(
+    panel.background = element_rect(fill = "white"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.line = element_line(color = "black"),
+    axis.text = element_text(color = "black", size = 12),
+    axis.title = element_text(color = "black", size = 14, face = "bold"),
+    legend.background = element_rect(fill = "white"),
+    legend.title = element_text(color = "black", size = 12, face = "bold"),
+    legend.text = element_text(color = "black", size = 12),
+    plot.title = element_text(color = "black", size = 16, face = "bold"),
+    plot.subtitle = element_text(color = "black", size = 14),
+    plot.caption = element_text(color = "black", size = 12, hjust = 0)
+  )
+}
+
+ggplot(ChemioMort,aes(x=`VHD`,fill= `Systolic Murmur`))+ggtitle("Stacked bar chart Valvulopatia e Soffio Sistolico")+ylab("Frequenza") +xlab("Valvulopatia cardiaca")+ geom_bar(position="fill")+coord_flip()+
+  scale_fill_manual(values = c("#B0E0E6", "#007BB8", "#6A51A3"))+theme_medical()
+
+```
+
+La forte correlazione negativa tra neutrofili e linfociti è giustificabile biologicamente, in quanto quando c'è un aumento della percentuale di neutrofili, spesso si osserva una diminuzione relativa della percentuale di linfociti, e viceversa. Questo effetto è parzialmente dovuto al fatto che la formula leucocitaria totale è costante, quindi un aumento di un tipo di cellula implica una diminuzione relativa degli altri tipi.
+
+```{r}
+
+ggplot(CAD, aes(y=`Neut`,x= `Lymph`))+
+  geom_point()+ggtitle("Andamento percentuale di neutrofili (%) e percentuale di linfociti (%)")
+
+```
+
+# 6. Feature Engeeniring: Recursive Feature Elimination
+
+La Recursive Feature Elimination è una tecnica di selezione delle caratteristiche che mira a identificare le caratteristiche più rilevanti per un modello di machine learning. RFE funziona rimuovendo ricorsivamente le caratteristiche meno importanti e costruendo il modello sulle caratteristiche rimanenti. Il processo continua fino a quando non viene raggiunto il numero desiderato di caratteristiche. Viene quindi effettuata una valutazione della rilevanza delle caratteristiche rispetto alla variabile dipendente tramite RFE. I valori di Accuracy e Kappa nella tabella possono essere interpretati come misure della bontà delle caratteristiche selezionate. Più alto è il valore, più le caratteristiche selezionate possono essere rilevanti o informative. Questi sembrano aumentare all'aumentare del numero di caratteristiche selezionate, fino a stabilizzarsi a un certo punto nel processo di selezione delle caratteristiche. La deviazione standard dell'accuratezza e del coefficiente di kappa tende a diminuire all'aumentare del numero di caratteristiche selezionate, indicando una maggiore coerenza nei risultati.
+
+```{r}
+library(caret)
+
+ctrl <- rfeControl(functions = rfFuncs, method = "cv", number = 10)
+
+rfe_result <- rfe(CAD[,-which(names(CAD) == "Cath")], CAD$Cath, sizes = c(1:10), rfeControl = ctrl)
+
+rfe_result
+
+```
+
+```{r}
+rfe_results <- data.frame(
+  Variables = 1:10,
+  Accuracy = c(0.7621, 0.7920, 0.7886, 0.8447, 0.8582, 0.8679, 0.8643, 0.8676, 0.8709, 0.8741),
+  Kappa = c(0.5142, 0.5085, 0.4882, 0.6219, 0.6568, 0.6733, 0.6623, 0.6698, 0.6765, 0.6882),
+  AccuracySD = c(0.08624, 0.07544, 0.06823, 0.05495, 0.04795, 0.03473, 0.03455, 0.04781, 0.04628, 0.05669),
+  KappaSD = c(0.13045, 0.17530, 0.15764, 0.14075, 0.11721, 0.08880, 0.08399, 0.11994, 0.11480, 0.12770)
+)
+
+
+
+ggplot(rfe_results, aes(x = Variables)) +
+  geom_line(aes(y = Accuracy), color = "blue") +
+  geom_point(aes(y = Accuracy), color = "blue") +
+  geom_errorbar(aes(ymin = Accuracy - AccuracySD, ymax = Accuracy + AccuracySD), width = 0.2, color = "blue") +
+  ylab("Accuracy") +
+  xlab("Numero delle Features Selezionate") +
+  ggtitle("Accuracy vs. Numero delle Features Selezionate")
+
+ggplot(rfe_results, aes(x = Variables)) +
+  geom_line(aes(y = Kappa), color = "red") +
+  geom_point(aes(y = Kappa), color = "red") +
+  geom_errorbar(aes(ymin = Kappa - KappaSD, ymax = Kappa + KappaSD), width = 0.2, color = "red") +
+  ylab("Kappa") +
+  xlab("Numero delle Features Selezionate") +
+  ggtitle("Kappa vs. Numero delle Features Selezionate")
+
+```
+
+# 7. Data Pre-processing
+
+Le reti neurali tendono a ottenere prestazioni migliori quando le variabili sono standardizzate. Questo perché la standardizzazione dei dati consente di portare tutte le variabili su una scala comune, eliminando così eventuali disparità di scala tra di esse. Inoltre, la standardizzazione accelera il processo di addestramento e favorisce una convergenza più rapida durante l'ottimizzazione dei parametri della rete.
+
+Per standardizzare le variabili, si utilizza la funzione scale(), che ridimensiona i dati in modo che abbiano una media zero e una deviazione standard unitaria. Questo processo assicura che le variabili abbiano una distribuzione simile, il che semplifica il processo di apprendimento per la rete neurale. Oltre ciò è necessario formattare diversamente le variabili che hanno lo spazio nel nome.
+
+```{r}
+set.seed(2)
+colnames(CAD) <- gsub(" ", "_", colnames(CAD))
+
+numeric_cols <- sapply(CAD, is.numeric)
+preproc <- preProcess(CAD[, numeric_cols], method = c("scale"))
+CAD_scaled <- predict(preproc, CAD[, numeric_cols])
+CAD_final <- cbind(CAD_scaled, CAD[!numeric_cols])
+
+colnames(CAD) <- gsub(" ", "_", colnames(CAD))
+
+u<-createDataPartition(CAD_final$Cath,times=1,p=0.8,list=TRUE)
+idx_train<-u[[1]]
+
+dat_train<-CAD[idx_train,]
+
+dat_test<- CAD[-idx_train,]
+```
+
+# 8. Model fitting
+
+Nella parte di Model Fitting, verranno processati i dati e creati dei modelli predittivi con l'annessa valutazione degli iperparametri. Verranno costruiti i seguenti modelli : reti neurali, random forest, boosting, modello logistico, knn. Sussessivamente verrà effettuato un confronto sulle metriche e verrà scelto il miglior modello da analizzare nella parte successiva.
+
+L’obiettivo principale dei modelli parametrici è ottenere delle stime significative e valide che contribuiscano alla comprensione delle relazioni causa-effetto specifiche nella popolazione. La perseguibilità dell’obiettivo tiene conto dell’individuazione di risultati non necessariamente generalizzabili ma piuttosto validi per un sottoinsieme ristretto della popolazione. La variabile dipendente Carth assume valore CAD se il paziente ha ottenuto diagnosi di malattie coronariche, Normal altrimenti. È stato effettuato uno split del dataset originale in training set, contenente l' 80% delle osservazioni, e test set, contenente il restante 20%. La motivazione alla base di questa scelta è che la distinzione in due set di dati consente di valutare le prestazioni del modello in modo imparziale e oggettivo. Dopo aver addestrato il modello sul training set, esso viene testato sul test set per valutare come si comporta su dati non osservati durante l’addestramento, fornendo una stima realistica delle prestazioni del modello. L’obiettivo principale è sviluppare un modello che sia in grado di generalizzare bene, ovvero, fare previsioni accurate su nuovi dati non ancora osservati. Inoltre, questo approccio aiuta a selezionare il modello che offre le migliori prestazioni e che sarà più generalizzabile per i dati futuri.
+
+```{r}
+
+categorical_vars <- dat_train %>% select_if(is.factor)
+
+one_hot_encoded <- model.matrix(~ . - 1, data = categorical_vars)
+
+one_hot_df <- as.data.frame(one_hot_encoded)
+
+colnames(one_hot_df) <- gsub("^(.*?)\\.", "", colnames(one_hot_df))
+
+dat_train_encoded <- cbind(dat_train, one_hot_df)
+
+
+
+categorical_vars_test <- dat_test %>% select_if(is.factor)
+one_hot_encoded_test <- model.matrix(~ . - 1, data = categorical_vars_test)
+one_hot_df_test <- as.data.frame(one_hot_encoded_test)
+colnames(one_hot_df_test) <- gsub("^(.*?)\\.", "", colnames(one_hot_df_test))
+dat_test_encoded <- cbind(dat_test, one_hot_df_test)
+
+dat_train_encoded<-dat_train_encoded[,-c(4, 6, 7, 8, 9,10,11,12,16,17,18,19,20,21, 22, 23,24,25, 42,43)]
+
+dat_test_encoded<- dat_test_encoded[,-c(4, 6, 7, 8, 9,10,11,12,16,17,18,19,20,21, 22, 23,24,25, 42,43)]
+names(dat_train_encoded)[names(dat_train_encoded) == "CathNormal"] <- "CathCad"
+names(dat_test_encoded)[names(dat_test_encoded) == "CathNormal"] <- "CathCad"
+
+dat_train_encoded$CathCad<-as.factor(dat_train_encoded$CathCad)
+
+dat_train_encoded$CathCad <- relevel(dat_train_encoded$CathCad, ref = "1")
+
+
+
+dat_test_encoded$CathCad<-as.factor(dat_test_encoded$CathCad)
+dat_test_encoded$CathCad <- relevel(dat_test_encoded$CathCad, ref = "1")
+
+
+
+```
+
+## 8.1 Modello logistico con stepwise selection
+
+```{r}
+set.seed(2)
+
+CAD$Cath<-relevel(CAD$Cath, ref="Cad")
+colnames(CAD) <- gsub(" ", "_", colnames(CAD))
+
+u<-createDataPartition(CAD$Cath,times=1,p=0.8,list=TRUE)
+idx_train<-u[[1]]
+
+dat_train<-CAD[idx_train,]
+
+dat_test<- CAD[-idx_train,]
+```
+
+```{r, include=FALSE}
+
+mod.null <- glm(Cath ~ 1, data=dat_train, family=binomial(link="logit"))
+
+variable_names <- names(dat_train)[names(dat_train) != "Cath" & names(dat_train) != "EF-TTE" & names(dat_train)!="EX-Smoker"]
+model1 <- as.formula(paste("Cath ~", paste(variable_names, collapse = " + ")))
+
+
+Step5.reg <- stepAIC(mod.null, direction="both", model1, trace=TRUE)
+summary(Step5.reg)
+
+```
+
+Il primo modello analizzato è il logistico con variable selection implementata con il metodo della stepwise forward. Questo metodo ha selezionato, tra le variabili disponibili, la presenza/assenza di dolori tipici, le regioni con anomalie, l'età, la presenza/assenza di inversione della T nell'ecocardiografia, diabete, presenza pregessa di malattie cardiache familiari, il sesso biologico, il livello di tigliceridi, frequenza del polso, livello di azoto, presenza/assenza di onda nell'elettrocardiogramma e ipertensione. Per la valutazione dell’importanza e della significatività dei coefficienti stimati del modello viene effettuato il test di Wald sui singoli parametri, confrontando l’ipotesi $H_0$: il coefficiente associato a una variabile sia statisticamente diverso da 0, contro l’alternativa $H_1$: il coefficiente è statisticamente diverso da 0. Il valore del test viene quindi espresso dal p-value, fissata una soglia critica di livello $\alpha$=0.05, risultano essere statisticamente significative tutte le variabili , a eccezione di Q wave e BUN, permettendo il rifiuto dell’ipotesi H_0. Tutte le metriche di riferimento verranno raccolte nella sezione utile al confronto tra modelli. Il valore di AUC è 0.91.
+
+```{r}
+mod2.final <- glm(Step5.reg$formula, data=dat_train, family=binomial(link="logit"), x=TRUE)
+summary(mod2.final)
+```
+
+```{r}
+
+### FORMULA DEL MODELLO LOGISTICO
+# Cath ~ Typical_Chest_Pain + Region_RWMA + Age + Tinversion + 
+#     DM + FH + PR + TG + Sex + HB + Q_Wave + HTN + BUN
+```
+
+```{r}
+
+library(stats)
+library(DescTools)
+# Brier max
+B <- mean((mod2.final$y) * (1-plogis(mod2.final$linear.predictors))^2 +
+            (1-mod2.final$y) * plogis(mod2.final$linear.predictors)^2)
+#B
+Bmax <- mean(mod2.final$y) * (1-mean(mod2.final$y))^2 + (1-mean(mod2.final$y)) * mean(mod2.final$y)^2
+#Bmax
+Bscaled <- 1 - B/Bmax
+#Bscaled
+
+PseudoR2(mod2.final, c("McFadden", "Nagel", "CoxSnell"))
+AIC(mod2.final)
+BIC(mod2.final)
+
+
+
+ranking = predict(mod2.final, newdata=dat_test, type = "response")
+predicted.classes = ifelse(ranking > 0.5, "Normal", "Cad")
+conf_matrix<-confusionMatrix(as.factor(predicted.classes), dat_test$Cath, positive="Cad")  
+
+
+
+accuracy <- conf_matrix$overall['Accuracy']
+precision <- conf_matrix$byClass['Pos Pred Value']
+recall <- conf_matrix$byClass['Sensitivity']
+f1_score <- 2 * (precision * recall) / (precision + recall)
+
+pred = prediction(ranking, dat_test$Cath)   
+perf = performance(pred, measure = "tpr", x.measure = "fpr")  
+plot(perf, col=rainbow(7), main="ROC curve LOGIT", xlab="Specificity", 
+     ylab="Sensitivity")    
+abline(0, 1) 
+text(x = 0.9, y = 0, labels = "AUC:0.91")
+AUC = performance(pred, "auc")   
+#AUC@y.values
+
+```
+
+## 8.2 KNN
+
+Il modello KNN è stato valutato utilizzando diversi valori di k, variando da 1 a 10. Le prestazioni del modello sono state valutate sia sul set di addestramento che sul set di test.
+
+Si nota che il modello presenta un'accuratezza di addestramento più alta rispetto all'accuratezza di test per la maggior parte dei valori di k considerati. Questa discrepanza potrebbe suggerire un problema di overfitting, dove il modello si adatta troppo ai dati di addestramento e non generalizza bene ai nuovi dati. Tuttavia, si osserva che l'accuratezza di test raggiunge il suo valore massimo quando k è pari a 7, il che potrebbe indicare una buona capacità di generalizzazione del modello a questo valore di k. Seppur dal grafico dell'accuratezza sembra esserci una situazione di parità e convergenza, dal grafico della loss sul train e validation set sembra chiaro e evidente che all'aumentare del numero di K si presenti una situazione di overfitting. Seppur la loss sul training diminuisce convergendo sino a mantenersi stabile, mentre la loss sul test set continua a aumentare sintomo di evidenza per cui il modello si sta adattando ai dati troppo e non è in grado di generalizzare.
+
+```{r, warning=FALSE, message=FALSE, include=FALSE}
+formula <- Cath ~ .
+
+accuracies_train <- numeric(10)
+accuracies_test <- numeric(10)
+
+for (k in 1:10) {
+  model_knn <- train(
+    formula,
+    data = dat_train,
+    method = "knn",
+    trControl = trainControl(method = "cv", number = 5),
+    preProcess = c("center", "scale"),  
+    tuneGrid = data.frame(k = k) 
+  )
+  
+  predictions_train <- predict(model_knn, newdata = dat_train)
+  predictions_test <- predict(model_knn, newdata = dat_test)
+  
+  accuracy_train <- mean(predictions_train == dat_train$Cath)
+  accuracy_test <- mean(predictions_test == dat_test$Cath)
+  
+  accuracies_train[k] <- accuracy_train
+  accuracies_test[k] <- accuracy_test
+  
+  cat("k =", k, ", Accuracy (train) =", accuracy_train, ", Accuracy (test) =", accuracy_test, "\n")
+}
+
+
+```
+
+```{r}
+best_k <- which.max(accuracies_test)
+#cat("Miglior valore di k sul set di test:", best_k, "\n")
+
+plot(1:10, accuracies_train, type = "b", xlab = "k", ylab = "Accuracy", main = "Accuracy vs k", col = "blue", ylim = c(0, 1))
+points(1:10, accuracies_test, type = "b", col = "red")
+legend("topright", legend = c("Train", "Test"), col = c("blue", "red"), pch = 1)
+```
+
+```{r, include=FALSE}
+library(caret)
+
+formula <- Cath ~ .
+
+loss_train <- numeric(10)
+loss_test <- numeric(10)
+
+for (k in 1:10) {
+  model_knn <- train(
+    formula,
+    data = dat_train,
+    method = "knn",
+    trControl = trainControl(method = "cv", number = 5),
+    preProcess = c("center", "scale"),  
+    tuneGrid = data.frame(k = k) 
+  )
+  
+  predictions_train <- predict(model_knn, newdata = dat_train)
+  predictions_test <- predict(model_knn, newdata = dat_test)
+  
+  
+  loss_train[k] <- sum(predictions_train != dat_train$Cath)
+  loss_test[k] <- sum(predictions_test != dat_test$Cath)
+  
+  cat("k =", k, ", Loss (train) =", loss_train[k], ", Loss (test) =", loss_test[k], "\n")
+}
+
+
+
+```
+
+```{r}
+best_k <- which.min(loss_test)
+
+plot(1:10, loss_train, type = "b", xlab = "k", ylab = "Loss", main = "Loss vs k", col = "blue")
+points(1:10, loss_test, type = "b", col = "red")
+legend("topright", legend = c("Train", "Test"), col = c("blue", "red"), pch = 1)
+```
+
+Il valore di accuratezza , 0.65%, è il più basso in assoluto.
+
+```{r}
+model_knn_best <- train(
+  formula,
+  data = dat_train,
+  method = "knn",
+  trControl = trainControl(method = "cv", number = 3),
+  tuneGrid = data.frame(k = 3)  
+)
+
+predictions_test <- predict(model_knn_best, newdata = dat_test)
+conf_matrix<-confusionMatrix(as.factor(predictions_test), dat_test$Cath, positive="Cad")  
+
+
+
+accuracy <- conf_matrix$overall['Accuracy']
+precision <- conf_matrix$byClass['Pos Pred Value']
+recall <- conf_matrix$byClass['Sensitivity']
+f1_score <- 2 * (precision * recall) / (precision + recall)
+
+```
+
+L' AUC è leggermente migliore rispetto a un classificatore random.
+
+```{r, message=FALSE, warning=FALSE}
+
+
+probabilities <- predict(model_knn_best, newdata = dat_test, type = "prob")
+prob <- probabilities[, "Normal"]
+roc_curve <- pROC::roc(response = dat_test$Cath, predictor = prob)
+plot(roc_curve, main = "Curva ROC - Modello KNN", col = "blue", lwd = 2)
+auc_value <- pROC::auc(roc_curve)
+legend("bottomright", legend = paste("AUC =", round(auc_value, 3)), col = "blue", lty = 1, lwd = 2)
+
+
+```
+
+## 8.3 RF
+
+Il modello Random Forest è stato addestrato su un dataset composto da 243 campioni e 42 variabili predittive, con l'obiettivo di classificare due classi: 'Cad' e 'Normal'. Il modello è stato validato utilizzando una tecnica di cross-validazione a 5 fold, garantendo una robusta valutazione delle sue prestazioni.
+
+Durante la fase di tuning, sono stati valutati diversi valori per il parametro mtry, che rappresenta il numero di variabili selezionate casualmente per la costruzione di ciascun albero nel modello Random Forest. La metrica dell'accuratezza è stata utilizzata per selezionare il modello ottimale, con il valore più alto riscontrato per mtry = 24. Questo valore è stato quindi utilizzato per il modello finale.
+
+```{r}
+library(caret)
+
+formula <- Cath ~ .
+
+model_rf <- train(
+  formula,
+  data = dat_train,
+  method = "rf",
+  trControl = trainControl(method = "cv", number = 5)
+)
+
+print(model_rf)
+
+```
+
+L'accuratezza del modello (0.85) è significativamente superiore al tasso di informazione nullo (No Information Rate) di 0.7167, con un p-value associato di 0.01221, indicando che il modello è statisticamente significativo.
+
+```{r}
+predictions_test <- predict(model_rf, newdata = dat_test)
+conf_matrix<-confusionMatrix(as.factor(predictions_test), dat_test$Cath, positive="Cad")  
+
+
+
+accuracy <- conf_matrix$overall['Accuracy']
+precision <- conf_matrix$byClass['Pos Pred Value']
+recall <- conf_matrix$byClass['Sensitivity']
+f1_score <- 2 * (precision * recall) / (precision + recall)
+
+
+
+```
+
+L'importanza delle variabili in un modello Random Forest è una misura che indica quanto ciascuna variabile predittiva contribuisce alla capacità predittiva del modello. In altre parole, è un modo per quantificare l'impatto che ogni variabile ha sulle decisioni prese dal modello. Questa misura è particolarmente utile per comprendere quali fattori sono più influenti nel determinare l'output del modello.
+
+Queste le variabili più importanti:
+
+```{r}
+importance <- varImp(model_rf)
+print(importance)
+
+```
+
+```{r}
+library(broom)
+
+importance_df <- as.data.frame(importance$importance)
+
+importance_df$Variable <- rownames(importance_df)
+
+importance_df <- importance_df[order(importance_df$Overall, decreasing = TRUE), ]
+
+ggplot(importance_df, aes(x = reorder(Variable, Overall), y = Overall)) +
+  geom_bar(stat = "identity", fill = "skyblue") +
+  labs(x = "Variabile", y = "Importanza", title = "Importanza delle variabili  Random Forest") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  
+```
+
+```{r, warning=FALSE, message=FALSE}
+probabilities_rf <- predict(model_rf, newdata = dat_test, type = "prob")[, "Cad"]
+roc_curve_rf <- pROC::roc(response = dat_test$Cath, predictor = probabilities_rf)
+
+auc_rf <- pROC::auc(roc_curve_rf)
+
+plot(roc_curve_rf, main = "Curva ROC - Modello Random Forest", col = "blue", lwd = 2)
+text(x = 0.5, y = 0.1, labels = paste("AUC =", round(auc_rf, 3)), adj = c(0.5, 0.5), col = "blue")
+
+```
+
+## 8.4 Modello RF 2 : dopo variable importance
+
+Si considerano quindi le variabili più importanti e si costruisce un nuovo modello per comprenderne la capacità di predizione. Utilizzando solo 9 variabili il modello mostra un'accuratezza simile al precedente modello:
+
+```{r}
+model_rf_2 <- train(
+  Cath~Typical_Chest_Pain+ Age+ Region_RWMA+ TG+ Atypical+ BMI+ Weight+ ESR+ FBS+ Length,
+  data = dat_train,
+  method = "rf",
+  trControl = trainControl(method = "cv", number = 5)
+)
+print(model_rf_2)
+```
+
+```{r}
+predictions_test <- predict(model_rf_2, newdata = dat_test)
+conf_matrix<-confusionMatrix(as.factor(predictions_test), dat_test$Cath, positive="Cad")  
+
+accuracy <- conf_matrix$overall['Accuracy']
+precision <- conf_matrix$byClass['Pos Pred Value']
+recall <- conf_matrix$byClass['Sensitivity']
+f1_score <- 2 * (precision * recall) / (precision + recall)
+
+```
+
+```{r, warning=FALSE, message=FALSE}
+probabilities_rf <- predict(model_rf_2, newdata = dat_test, type = "prob")[, "Cad"]
+roc_curve_rf <- pROC::roc(response = dat_test$Cath, predictor = probabilities_rf)
+
+auc_rf <- pROC::auc(roc_curve_rf)
+
+plot(roc_curve_rf, main = "Curva ROC - Modello Random Forest", col = "blue", lwd = 2)
+text(x = 0.5, y = 0.1, labels = paste("AUC =", round(auc_rf, 3)), adj = c(0.5, 0.5), col = "blue")
+
+```
+
+## 8.5 BOOSTING
+
+Il modello viene valutato tramite cross validation con 5 fold. Durante il processo di tuning, sono stati considerati i seguenti parametri:
+
+-interaction.depth: Profondità massima di ciascun albero di decisione. 
+-n.trees: Numero totale di alberi nel modello. 
+-shrinkage: Tasso di apprendimento, fissato a 0.1. 
+-n.minobsinnode: Numero minimo di osservazioni richieste in un nodo terminale, fissato a 10.
+
+I risultati della cross-validation con i parametri di tuning mostrano che il miglior modello è stato ottenuto con n.trees = 100 e interaction.depth = 1.
+
+Il modello Stochastic Gradient Boosting ha mostrato un'ottima performance nel prevedere CAD. L'accuratezza del modello sul set di test è risultata essere 0.9, con un intervallo di confidenza al 95% che va da 0.7949 a 0.9624, indicando una performance robusta e stabile. La Sensitivity del modello è estremamente alta (0.9535), suggerendo che il modello è molto efficace nel rilevare i casi di CAD (vero positivo). La Specificity è più bassa (0.7647), ma ancora accettabile, indicando che il modello ha una discreta capacità di identificare correttamente i casi normali (vero negativo). Il Positive Predictive Value di 0.9111 e il Negative Predictive Value di 0.8667 indicano che il modello ha un'elevata precisione nelle sue predizioni, riducendo al minimo i falsi positivi e i falsi negativi.
+
+```{r, warning=FALSE, message=FALSE}
+
+formula <- Cath ~ .
+model_boosting <- train(
+  formula,
+  data = dat_train,
+  method = "gbm",
+  trControl = trainControl(method = "cv", number = 5),
+  verbose = FALSE
+)
+
+print(model_boosting)
+
+ 
+
+```
+
+```{r}
+predictions_boosting <- predict(model_boosting, newdata = dat_test)
+conf_matrix<-confusionMatrix(as.factor(predictions_boosting), dat_test$Cath, positive="Cad")
+accuracy <- conf_matrix$overall['Accuracy']
+precision <- conf_matrix$byClass['Pos Pred Value']
+recall <- conf_matrix$byClass['Sensitivity']
+f1_score <- 2 * (precision * recall) / (precision + recall)
+```
+
+```{r, message=FALSE, warning=FALSE}
+probabilities_rf <- predict(model_boosting, newdata = dat_test, type = "prob")[, "Cad"]
+roc_curve_rf <- pROC::roc(response = dat_test$Cath, predictor = probabilities_rf)
+
+auc_rf <- pROC::auc(roc_curve_rf)
+
+plot(roc_curve_rf, main = "Curva ROC - Modello Random Forest", col = "blue", lwd = 2)
+text(x = 0.5, y = 0.1, labels = paste("AUC =", round(auc_rf, 3)), adj = c(0.5, 0.5), col = "blue")
+
+```
+
+## 8.6 Rete neurale
+
+La rete neurale utilizzata è una configurazione 30-5-1 con un totale di 150 pesi. Questo significa che ci sono 30 neuroni di input, 5 neuroni nel livello nascosto e 1 neurone di output.  La configurazione è quindi una rete neurale single layer feed forward, la funzione utilizzata alla creazione utilizza come metodo di ottimizzazione BFGS. 
+
+Il modello è stato configurato con una funzione di perdita di entropia e un parametro di regolarizzazione (decay) impostato a 0.1. Il parametro di decay di 0.1 applica una penalizzazione sui pesi della rete neurale, riducendo la magnitudine dei pesi durante l'addestramento. Questo aiuta a prevenire l'overfitting, migliorando la generalizzazione del modello sui dati di test
+
+```{r}
+library(nnet)
+set.seed(3)
+nnet.fit.s1 <-nnet(CathCad ~.,
+ size=5,
+ decay=0.1,
+ maxit=2000,
+ trace= FALSE,
+ data=dat_train_encoded)
+```
+
+```{r}
+plotnet(nnet.fit.s1)
+prev.s1 <-predict(nnet.fit.s1,dat_test_encoded[, -47])
+prevClass <- predict(nnet.fit.s1,dat_test_encoded[, -47],type="class")
+```
+
+```{r}
+ ROCit_NN <- rocit(score=c(prev.s1),class=dat_test_encoded$CathCad )
+ plot(ROCit_NN)
+
+```
+
+Youden’s Index è una misura utilizzata frequentemente in combinazione con l'analisi della curva ROC (Receiver Operating Characteristic) per valutare l'efficacia di un test diagnostico. L'indice varia tra -1 e 1, con un valore massimo di 1 che indica una perfetta capacità discriminatoria del test (cioè, il test identifica correttamente tutti i positivi e tutti i negativi). Il valore massimo di Youden’s Index lungo la curva ROC viene utilizzato per selezionare il cut-off ottimale del test diagnostico. Questo punto ottimizza contemporaneamente la sensibilità e la specificità, massimizzando la capacità del test di discriminare tra i casi positivi e negativi. 
+
+```{r}
+ summary(ROCit_NN)
+
+```
+
+
+
+```{r}
+ prev <- predict(nnet.fit.s1,dat_test_encoded[,-48])
+```
+
+```{r, warning=FALSE, message=FALSE}
+ opt_cut <- cutpointr(c(prev), dat_test_encoded$CathCad, method = maximize_metric, metric = youden)
+ #opt_cut
+```
+
+```{r}
+ YoudenOptim <- opt_cut$optimal_cutpoint
+predClass <- factor(ifelse(prev<YoudenOptim,"1","0"))
+conf_matrix<- caret::confusionMatrix(data = predClass, reference = factor(dat_test_encoded$CathCad),positive="1")
+ 
+ accuracy <- conf_matrix$overall['Accuracy']
+precision <- conf_matrix$byClass['Pos Pred Value']
+recall <- conf_matrix$byClass['Sensitivity']
+f1_score <- 2 * (precision * recall) / (precision + recall)
+ 
+```
+
+## 8.7 Rete Neurale con decay 0.01
+
+Viene addestrata la stessa rete  con 5 neuroni al livello intermedio, per verificare quanto il modello ha necessità di essere complesso per prevedere bene; in tal caso il decay è stato fissato più basso : 0.01. I risultati, in termini di accuratezza, sono nettamente migliori rispetto alla rete neurale con lo stesso numero di neuroni ma con una penalizzazione più alta. 
+
+```{r}
+set.seed(3)
+nnet.fit.s2 <-nnet(CathCad ~.,
+ size=5,
+ decay=0.01,
+ maxit=200,
+ trace= FALSE,
+ data=dat_train_encoded)
+```
+
+```{r}
+prev.s2 <-predict(nnet.fit.s2,dat_test_encoded[, -47])
+prevClass <- predict(nnet.fit.s2,dat_test_encoded[, -47],type="class")
+```
+
+```{r}
+ ROCit_NN <- rocit(score=c(prev.s2),class=dat_test_encoded$CathCad )
+ plot(ROCit_NN)
+
+```
+
+```{r}
+ prev <- predict(nnet.fit.s2,dat_test_encoded[,-47])
+```
+
+```{r}
+ opt_cut <- cutpointr(c(prev), dat_test_encoded$CathCad, method = maximize_metric, metric = youden)
+ #opt_cut
+```
+
+```{r}
+ YoudenOptim <- opt_cut$optimal_cutpoint
+predClass <- factor(ifelse(prev<YoudenOptim,"1","0"))
+ conf_matrix<-caret::confusionMatrix(data = predClass, reference = factor(dat_test_encoded$CathCad),positive="1")
+  accuracy <- conf_matrix$overall['Accuracy']
+precision <- conf_matrix$byClass['Pos Pred Value']
+recall <- conf_matrix$byClass['Sensitivity']
+f1_score <- 2 * (precision * recall) / (precision + recall)
+```
+
+## 8.8 Rete Neurale con CV
+
+Si può pensare di migliorare le performance della rete neurale con l’utilizzo della K-fold Cross-Validationcon k=5, in cui si prendono in considerazione i seguenti iperparametri:
+
+-   Numero di neuroni nello strato nascosto: Consideriamo una sequenza di neuroni da 1 a 10
+-   Decadimento dei pesi: si considera 0.5, 0.1, 0.01, 0.001, 0.02
+-   Numero di epoche di apprendimento: si considerano 100,200 e 500
+
+Per ogni combinazione degli iperparametri considerati, viene stimata una rete neurale. Al termine del processo, si otterranno k metriche di performance, ciascuna relativa ai k passaggi effettuati. Le k metriche di performance vengono aggregate per ottenere una singola metrica finale. Alla fine, viene selezionata la combinazione di iperparametri che garantisce la migliore accuratezza nella cross-validation.
+
+Il grafico mostra l'accuratezza della cross-validation per la rete neurale in funzione del numero di unità nascoste, del decadimento del peso e del numero di epoche. Ci sono tre pannelli, ciascuno rappresenta un numero diverso di epoche: 100, 200 e 500. All'interno di ogni pannello, sono tracciate diverse curve che rappresentano differenti valori di decadimento del peso: 0.001, 0.01, 0.02, 0.1 e 0.5.
+
+Osservando il primo pannello, relativo alle 100 epoche, si nota una considerevole variabilità nell'accuratezza a seconda del numero di unità nascoste e del valore di decadimento del peso. Non emerge una chiara tendenza, sebbene i valori di decadimento più bassi (0.001 e 0.01) sembrano avere performance relativamente migliori rispetto agli altri.
+
+Nel secondo pannello, per 200 epoche, l'accuratezza mostra una maggiore stabilità e tende a essere più alta rispetto al pannello precedente. Anche qui, i valori di decadimento più bassi continuano a performare meglio, in particolare 0.001 e 0.01, che raggiungono picchi di accuratezza più elevati.
+
+Infine, nel pannello delle 500 epoche, si osserva una situazione simile, con una performance complessiva che si stabilizza ulteriormente. Tuttavia, la variabilità è ancora presente, suggerendo che l'aumento del numero di epoche non elimina completamente l'influenza del numero di unità nascoste e del valore del decadimento del peso sull'accuratezza. Ancora una volta, i valori di decadimento del peso più bassi sembrano offrire le migliori performance in termini di accuratezza.
+
+Il miglior modello , in termini di accuratezza sembra essere size=2 e decay=0.01, n di epoche 200.
+
+```{r}
+param_grid <- expand.grid(
+  size = c(1:10),   
+  decay = c(0.5, 0.1, 0.01, 0.001, 0.02) 
+)
+
+# train_control <- trainControl(method = "cv", number = 5) 
+# 
+# model1 <- train(
+#   CathCad ~ ., 
+#   data = dat_train_encoded,  
+#   method = "nnet",  
+#   trControl = train_control,  
+#   tuneGrid = param_grid,  
+#   trace = FALSE, 
+#   maxit=100
+# )
+#saveRDS(model1, file = "modello_1.rds")
+
+modello_1 <- readRDS("modello_1.rds")
+
+grafico1<-plot(modello_1, main="100 epoche")
+```
+
+```{r}
+param_grid <- expand.grid(
+  size = c(1:10),   
+  decay = c(0.5, 0.1, 0.01, 0.001, 0.02) 
+)
+
+train_control <- trainControl(method = "cv", number = 5) 
+
+# model2 <- train(
+#   CathCad ~ ., 
+#   data = dat_train_encoded,  
+#   method = "nnet",  
+#   trControl = train_control,  
+#   tuneGrid = param_grid,  
+#   trace = FALSE, 
+#   maxit=200
+# )
+# saveRDS(model2, file = "modello_2.rds")
+
+modello_2 <- readRDS("modello_2.rds")
+
+grafico2<-plot(modello_2, main="200 epoche")
+```
+
+```{r}
+param_grid <- expand.grid(
+  size = c(1:10),   
+  decay = c(0.5, 0.1, 0.01, 0.001, 0.02) 
+)
+
+# train_control <- trainControl(method = "cv", number = 5) 
+# 
+# model3 <- train(
+#   CathCad ~ ., 
+#   data = dat_train_encoded,  
+#   method = "nnet",  
+#   trControl = train_control,  
+#   tuneGrid = param_grid,  
+#   trace = FALSE, 
+#   maxit=500
+# )
+# saveRDS(model3, file = "modello_3.rds")
+modello_3 <- readRDS("modello_3.rds")
+
+
+grafico3<-plot(modello_3, main="500 epoche")
+```
+
+```{r}
+grid.arrange(grafico1, grafico2, grafico3, ncol = 3,  widths = c(10, 10, 10))
+
+```
+
+```{r}
+set.seed(3)
+nnet.fit.s2 <-nnet(CathCad ~.,
+ size=2,
+ decay=0.01,
+ maxit=200,
+ trace= FALSE,
+ data=dat_train_encoded)
+```
+
+```{r}
+prev.s2 <-predict(nnet.fit.s2,dat_test_encoded[, -47])
+prevClass <- predict(nnet.fit.s2,dat_test_encoded[, -47],type="class")
+```
+
+```{r}
+ ROCit_NN <- rocit(score=c(prev.s2),class=dat_test_encoded$CathCad )
+ plot(ROCit_NN)
+ summary(ROCit_NN)
+
+```
+
+```{r}
+ prev <- predict(nnet.fit.s2,dat_test_encoded[,-47])
+```
+
+```{r}
+ opt_cut <- cutpointr(c(prev), dat_test_encoded$CathCad, method = maximize_metric, metric = youden)
+ #opt_cut
+```
+
+```{r}
+ YoudenOptim <- opt_cut$optimal_cutpoint
+predClass <- factor(ifelse(prev<YoudenOptim,"1","0"))
+ conf_matrix<-caret::confusionMatrix(data = predClass, reference = factor(dat_test_encoded$CathCad),positive="1")
+  accuracy <- conf_matrix$overall['Accuracy']
+precision <- conf_matrix$byClass['Pos Pred Value']
+recall <- conf_matrix$byClass['Sensitivity']
+f1_score <- 2 * (precision * recall) / (precision + recall)
+```
+
+# 9. Confronto fra modelli
+
+L’obiettivo principale del seguente paragrafo è la valutazione delle prestazioni e delle caratteristiche dei modelli implementati precedentemente, tramite confronto, per l’identificazione del modello più adatto allo scopo della ricerca. La definizione del modello tiene conto delle premesse fatte inizialmente, ovvero la possibilità che le previsioni siano valide per i soggetti della popolazione di riferimento e non necessariamente generalizzabili. L’utilità del modello è principalmente proiettata per la pratica medica e la previsione della malattia per i pazienti (diagnosi, stima prognostica e supporto decisionale). Per effettuare un confronto accurato, sono stati presi in considerazione diversi criteri, tra cui l’adeguatezza del modello alle specifiche della popolazione di studio, la precisione delle stime dei parametri, e la capacità predittiva tramite l’utilizzo di indici.
+
+L’efficacia dei modelli e l’accuratezza delle previsioni sono valutate attraverso l’utilizzo di metriche quali accuratezza (acc), precisione, recall, f1 score e Area Under the Curve (AUC). Dati i risultati, emerge che il modello di Boosting con cross validation a 5 fold è il più performante, con un’accuratezza (acc) del 93% e una AUC di 0.94. Questo indica una capacità eccellente di distinguere tra le classi e un’elevata accuratezza nelle previsioni. Il modello dimostra una precisione e un recall entrambe pari a 0.93 e 0.93 rispettivamente, risultando in un f1 score di 0.92. Il Random Forest con importanza delle variabili mostra anche esso buone prestazioni, con una recall del 93% e una AUC di 0.90, suggerendo un buon equilibrio tra rilevamento dei veri positivi e minimizzazione dei falsi negativi. La regressione logistica con selezione stepwise e Random Forest con validazione incrociata a 5 fold presentano un’accuratezza simile del 85%, ma differiscono leggermente nelle altre metriche. La regressione logistica ha una precisione particolarmente alta (0.94), indicando un basso numero di falsi positivi, mentre il Random Forest con CV5 mostra una recall più alta (0.90), suggerendo una maggiore capacità di identificare i veri positivi. Il modello KNN si posiziona come il meno performante, con un’accuratezza del 65% e una AUC di 0.54, indicando difficoltà nel distinguere correttamente tra le classi.
+
+Per quanto riguarda i modelli di Rete Neurale, il modello con la validazione incrociata a 5 fold risulta il più performante tra essi, con un’accuratezza del 87% e una AUC di 0.90. Gli altri modelli di Rete Neurale mostrano prestazioni inferiori, con accuratezze tra 78% e 80% e valori di AUC compresi tra 0.66 e 0.78.
+
+In conclusione, il modello di Boosting con CV a 5 fold è il più efficace in termini di bilanciamento tra accuratezza, precisione, recall e AUC, dimostrando una capacità superiore di classificare correttamente i dati rispetto agli altri modelli analizzati, per cui qualora si avesse necessità di spiegare le interazioni tra le variabili è il modello più adatto.
+
+Tuttavia, sebbene non sia il modello con le prestazioni complessive più elevate in termini di accuratezza e AUC, il modello di Rete Neurale con size 5 e decay 0.01 è particolarmente adatto in scenari dove è fondamentale minimizzare i falsi negativi per garantire una diagnosi tempestiva della malattia. Questo approccio è preferito quando l’obiettivo principale è garantire che il maggior numero possibile di veri positivi sia identificato, migliorando così le possibilità di intervento precoce e trattamento efficace.
+
+```{r}
+
+results <- data.frame(
+  Model = c("Logistic Regression", "KNN", "Random Forest", "Random Forest", "Boosting", "Rete Neurale", "Rete Neurale", "Rete Neurale con CV"),
+  Approach = c("Stepwise Selection", "CV 5 Folds", "CV 5 Folds",  "Variable Importance", "CV 5 Folds", "Size 5, Decay 0.1", "Size 5, Decay 0.01", "CV 5 Folds"),
+  acc = c(0.85, 0.65, 0.81, 0.85, 0.93, 0.8, 0.78, 0.87),
+  precision = c(0.94, 0.75, 0.84, 0.89, 0.93, 0.7, 0.58, 0.6744),
+  recall = c(0.83, 0.76, 0.90, 0.93, 0.93, 0.94, 0.82, 0.77),
+  f1 = c(0.88, 0.75, 0.87, 0.89, 0.92, 0.72, 0.68, 0.77),
+  auc = c(0.91, 0.54, 0.90, 0.87, 0.94, 0.78, 0.66, 0.90))
+
+```
+
+```{r}
+results %>%
+  gt() %>%
+  tab_header(
+    title = "Performance dei Modelli"
+  ) %>%
+  fmt_number(
+    columns = vars(acc, precision, recall, f1, auc),
+    decimals = 4
+  ) %>%
+  data_color(
+    columns = vars(acc, precision, recall, f1, auc),
+    colors = scales::col_numeric(
+      palette = "Blues",
+      domain = NULL
+    )
+  )
+
+```
+
+# 10. SHAP (SHapley Additive exPlanations)
+
+SHAP sta per SHpley Additive ExPlanations. È un modo per calcolare l'impatto di una funzionalità sul valore della variabile target. L'idea è di considerare ogni caratteristica come un giocatore e il set di dati come una squadra. Ogni giocatore dà il proprio contributo al risultato della squadra. La somma di questi contributi dà il valore della variabile target dati alcuni valori delle caratteristiche (cioè dato un particolare record).
+
+Il concetto principale è che l’impatto di una caratteristica non si basa solo sulla singola caratteristica, ma sull’intero insieme di caratteristiche del set di dati. Pertanto, SHAP calcola l'impatto di ogni caratteristica sulla variabile target (chiamata valore shap) utilizzando il calcolo combinatorio e riqualificando il modello su tutta la combinazione di caratteristiche che contiene quella che stiamo considerando. Il valore medio assoluto dell'impatto di una caratteristica rispetto a una variabile target può essere utilizzato come misura della sua importanza.
+
+```{r, include=FALSE}
+library("DALEX")
+library("shapper")
+
+explainer <- DALEX::explain(model = nnet.fit.s1,
+                            data = dat_train_encoded[, -ncol(dat_train_encoded)],
+                            y = as.factor(dat_train_encoded$CathCad),
+                            label = "nnet_model")
+
+shap_values <- DALEX::predict_parts(explainer, new_observation = dat_test_encoded[1:3, ])
+
+```
+
+Il grafico degli shap aiuta a visualizzare l'importanza relativa delle variabili nel modello. Ogni barra nel grafico rappresenta l'importanza della variabile corrispondente nei valori SHAP, per cui come ciascuna caratteristica influisce sulla predizione del modello, evidenziando sia la direzione sia l'entità del contributo di ciascuna variabile.. Le barre più lunghe indicano una maggiore importanza della variabile nel modello.
+
+L'intercetta è pari a 0.71. Questo valore rappresenta il punto di partenza della predizione del modello, ovvero il valore di base a cui vengono aggiunti (o sottratti) i contributi delle altre variabili per arrivare alla predizione finale.
+
+**PLT** : - Valore: 742 - Contributo: +0.25 (Bastone verde) - Un valore di PLT pari a 742 contribuisce positivamente alla predizione del modello con un incremento di 0.25. Il bastone verde indica che questa variabile ha un impatto significativo nel senso positivo, suggerendo che alti valori di PLT sono associati a un aumento nella predizione del modello.
+
+**ST Depression**: - Valore: 1 - Contributo: +0.029 (Bastone verde) - Un valore di ST depression pari a 1 contribuisce con un incremento di 0.029 alla predizione del modello. Anche in questo caso, il bastone verde indica un impatto positivo, suggerendo che la presenza di depressione del segmento ST ha una correlazione positiva con la variabile target del modello.
+
+**Weight**: - Valore: 67 - Contributo: -0.072 (Bastone rosso) - Un peso di 67 contribuisce negativamente alla predizione del modello con una diminuzione di 0.072. Il bastone rosso indica che questa variabile ha un impatto negativo, suggerendo che un peso maggiore è associato a una diminuzione nella predizione del modello.
+
+**VHD Severe** : - Contributo: +0.029 (Bastone verde) - La presenza di VHD Severo contribuisce positivamente alla predizione del modello con un incremento di 0.029. Questo suggerisce che la presenza di una grave malattia valvolare cardiaca è associata a un aumento nella predizione del modello.
+
+**Lymph**: - Valore: 18 - Contributo: -0.03 (Bastone rosso) - Un livello di linfociti pari a 18 contribuisce negativamente alla predizione del modello con una diminuzione di 0.03. Il bastone rosso indica un impatto negativo, suggerendo che un basso numero di linfociti è associato a una diminuzione nella predizione del modello.
+
+I risultati sono importanti perchè permettono di ottenere un certo grado di certezza circa la previsione oltre che dare consigli su come procedere. In particolare, nel caso specifico, se procedere con angiografia invasiva o ripetere stress test. Per il paziente in questione , sulla base della rete neurale, è possibile dare un'analisi dettagliata:
+
+Anche se presenta VHD allo stato severo, non ha precedenze in famiglia circa malattie coronarie , ma è un paziente obeso (BMI\>25), i valori del ECG mostrano segni di ischemia (st depression=1) , LDL=25 i globuli rossi sono alti (130000) al limite. Il modello prevede la probabilità di malattia coronarica pari al 91.9%. Si pensa che il paziente dovrebbe sottoporsi ad un'angiografia coronarica come strategia invasiva precoce.
+
+```{r}
+plot(shap_values, type = "bar")
+
+```
+
+Prendendo come esempio il paziente 8, la situazione è completamente diversa:
+
+Anche se nel ECG sono presenti segni di ischemia (st depression), è obeso BMI\>25, ma la malattia delle valvole è normale, non mostra dolori atipici e non ha il diabete, il modello ha previsto la probabilità di malattia coronarica pari al 36%. Si pensa che il paziente non dovrebbe sottoporsi ad un'angiografia coronarica ora ma provare a ripetere stress test per vedere se ci sono segni di ischemia.
+
+```{r, include=FALSE}
+explainer <- DALEX::explain(model = nnet.fit.s1,
+                            data = dat_train_encoded[, -ncol(dat_train_encoded)],
+                            y = as.factor(dat_train_encoded$CathCad),
+                            label = "nnet_model")
+
+shap_values <- DALEX::predict_parts(explainer, new_observation = dat_test_encoded[8, ])
+```
+
+```{r}
+plot(shap_values, type = "bar")
+
+```
+
+# 11. Conclusioni
+
+L' obiettivo era costruire un modello di previsione della malattia coronarica, confrontare le prestazioni di vari algoritmi di apprendimento automatico e analizzare la spiegabilità dell'algoritmo di apprendimento automatico selezionato con la recall più bassa.
+
+Nella parte Descrizione del set di dati, si è cercato di comprendere ciascuna funzionalità in modo elaborato per avere una maggiore comprensione del dominio.
+
+Nella parte Analisi esplorativa dei dati, ci si è fatta un'idea della distribuzione dei dati ed esaminato le proprietà statistiche di base . Ciò includeva la comprensione dei tipi di variabili, il controllo dei valori mancanti e la visualizzazione della distribuzione di varie funzionalità . Oltre tutto, grazie all'analisi delle corrispondenze multiple e tecniche di feature engeeniring si è cercato di comprendere l'impatto e le associazioni fra le variabili.
+
+Nella parte Analisi predittiva, i dati sono stati preprocessati, sono stati sviluppati modelli predittivi con ottimizzazione degli iperparametri, spesse volte con cross-validation. Sono stati costruiti diversi modelli: logistic regression, random forest, boosting, knn e reti neurali. La rete neurale con la recall più alta è stata scelta per analizzare la spiegabilità.
+
+In SHAP, si è cercato di interpretare il modello di Rete Neurale con il valore SHAP. Per comprendere l'interpretabilità locale del modello, sono stati scelti il paziente n. 1 e il paziente n. 8 dal set di dati di training, tramite l'analisi di shap si è cercato quindi di ottenere un parere medico e definire la probabilità di malattia.
+
+Tuttavia, è importante considerare i seguenti limiti nella valutazione dei risultati e delle conclusioni di questo progetto :
+
+1.  Limitazioni dei dati: È possibile che i dati utilizzati per l’analisi siano limitati in termini di dimensione del campione, copertura temporale o completezza delle informazioni. Queste limitazioni possono influire sulla generalizzabilità dei risultati e sulla precisione delle stime ottenute.
+2.  Mancanza di variabili rilevanti: È possibile che alcune variabili potenzialmente influenti non siano state incluse nell’analisi a causa di limitazioni dei dati o di altre ragioni. La mancanza di queste variabili potrebbe limitare la capacità dei modelli di spiegare completamente la previsione.
+3.  Potenziale confondimento: Nonostante gli sforzi per controllare le variabili confondenti, potrebbe essere presente un potenziale confondimento non misurato o non considerato nei modelli. Ciò potrebbe influire sugli effetti stimati delle variabili di interesse e sulla validità delle conclusioni.
+4.  Limitazioni dell’interpretazione causale: nonostante gli sforzi per controllare le variabili confondenti, gli studi osservazionali come questo possono presentare limitazioni nella determinazione di relazioni causali tra le variabili di interesse.
+
+In conclusione, la scelta del modello migliore dipenderà dal tipo di informazione che si vuole estrarre dallo stesso: è stata scelta la rete neurale il cui valore di recall è più alto, in quanto si vuole evitare il più possibile i falsi negativi; i falsi positivi possono essere considerati di minore importanza in ambito medico. In alternativa, qualora dal modello si ha necessità di ottenere informazioni più approfondite circa il legame dei fattori-malattia è possibile scegliere il boosting le cui misure di accuratezza e prestazione sono lo stesso elevate.
+
+# Riferimenti bibliografici
+
+[1] https://www.sculati.it/media/sovrappeso_obesita.pdf (pagina 13) 
+[2] https://www.ahajournals.org/doi/10.1161/CIR.0000000000001168#d1e2894 (Capitolo 3) 
+[3] https://www.ahajournals.org/doi/10.1161/JAHA.118.010107#:\~:text=Left%20ventricular%20hypertrophy%20(LVH)%20is,for%20cardiovascular%20disease%20and%20mortality.&text=Recently%2C%20LVH%20diagnosed%20by%20ECG,risk%20of%20stroke%20and%20death. 
+[4] https://www.thecardiologyadvisor.com/ddi/chest-pain-differential-diagnosis/#:\~:text=Chest%20pain%20differential%20diagnosis%20can,inflammatory%20bowel%20disease%2C%20bacterial%20pleurisy
+
+# Appendice: analisi univariata del dataset
+
+L'analisi univariata permette di esplorare una variabile alla volta. Le [Statistiche descrittive]{style="font-family: 'Courier New';"} sono strumenti cruciali per riassumere un gruppo di osservazioni nel modo più semplice possibile.
+
+Per le variabili categoriali: 1. si calcolano le tabelle di frequenza 2. diagramma a barre 3. pie chart
+
+Per le variabili quantitative: 1. si calcolano le misure di posizione o tendenza centrale come media, mediana e quartili 2. misure di dispersione come la deviazione standard, MAD, varianza etc.. 3. misure di forma come asimmtria e curtosi 4. boxplots 5. stime di densità Kernel 6. Normal probability plots
+
+## Età (variabile 1)
+
+In media, si è osservato che l'età dei partecipanti è circa 58.9 anni. La mediana è di 58, per cui la metà dei partecipanti ha da 30 a 58 anni, mentre l'altra metà da 58 a 86. Il risultato suggerisce una distribuzione leggermente asimmetrica. Rispetto ai quartili, il primo quartile (Q1) è di 51%, il secondo quartile (Q2, che coincide con la mediana) è di 58 e il terzo quartile (Q3) è di 66. La simmetria è leggermente positiva, con un valore di circa 0.06, per cui la distribuzione tende ad essere leggermente spostata verso destra, indicando una maggiore concentrazione di pazienti la cui età è superiore a 58. La curtosi, con un valore di circa -0.5, indica una distribuzione con code poco pesanti.
+
+```{r}
+simmetria<-function(x){
+Q<-quantile(x, probs=c(0.25, 0.5, 0.75))
+a<-{Q[1]+Q[3]-2*Q[2]}/{Q[3]-Q[1]}
+a}
+
+curtosi<-function(x){
+ val<-mean(scale(x)^4)-3
+val
+}
+statistiche<-function(x){
+  media=mean(x)
+  mediana=median(x)
+  quant=quantile(x, probs = c(0.25,0.50,0.75))
+  varianza=var(x)
+  dev_stan=sd(x)
+  simmet=simmetria(x)
+  curt=curtosi(x)
+  stat=data.frame(Statistiche=c('Media', 'Mediana',  'Q1','Q2', 'Q3', 'Varianza', 'Deviazione standard', 'Simmetria', 'Curtosi'), 
+                  Valori=c(media,mediana,quant,varianza,dev_stan,simmet,curt))
+  stat
+}
+statistiche(CAD$Age)
+
+```
+
+### Istogramma
+
+L'istogramma è una rappresentazione grafica per la visualizzazione della variabile numerica. Dal grafico non c'è evidenza di bimodalità.
+
+```{r, warning=FALSE }
+ggplot(data = CAD, mapping = aes(x=Age,..density..)) + geom_histogram()
+
+```
+
+### Boxplot
+
+Il boxplot è composto da una scatola che si estende da un quartile all'altro, cioè dal primo quartile (Q1) al terzo quartile (Q3). La lunghezza della scatola rappresenta l'intervallo interquartile (IQR) e indica dove si concentra la maggior parte dei dati. All'interno della scatola c'è una linea che rappresenta la mediana dei dati, che è il valore centrale nella distribuzione. I baffi si estendono dalla scatola verso l'alto e verso il basso. Possono rappresentare la dispersione dei dati e indicare quanto lontano si estendono i dati al di fuori dell'intervallo interquartile. I punti che cadono al di fuori dei baffi sono spesso considerati valori anomali o estremi. Questi punti rappresentano dati che si discostano significativamente dalla maggior parte delle osservazioni. La mediana è posizionata centrale rispetto osservazioni. Non sembrano esserci valori anomali e la distribuzione rispecchia la simmetria calcolata precedentemente.
+
+```{r}
+theme_1<-theme(panel.background = element_rect(fill = '#83c8ac', color = '#9a8262'),
+panel.grid.major = element_line(color = '#ffffff', linetype = 'longdash'),
+panel.grid.minor = element_line(color = '#83c8ac', size = 0.7,linetype = "dotdash"))
+ggplot(CAD, aes(x = Age)) +
+geom_boxplot() +
+coord_flip()+ theme_1
+```
+
+## BP (variabile 2)
+
+La pressione sanguigna è una variabile importante nel dataset. In media, gli individui registrano un valore pari a 130. La mediana è di 129.55, suggerisce una distribuzione relativamente bilanciata. Rispetto ai quartili, il primo quartile (Q1) è di 120, il secondo quartile (Q2, che coincide con la mediana) è di 130 e il terzo quartile (Q3) è di 140. In media la pressione sanguigna si si discosta di 18.93 dalla media. La simmetria è pari a 0. La curtosi è leggermente positiva con un valore di 0.43. Questo indica una distribuzione leggermente schiacciata rispetto a una distribuzione normale, suggerendo che ci siano meno valori estremi o "code" rispetto a una distribuzione più piatta.
+
+```{r}
+
+statistiche(CAD$`BP`)
+
+```
+
+### Density
+
+Il grafico di densità è un tipo di grafico che permette di visualizzare la forma della distribuzione di una variabile continua. Questa visualizzazione è particolarmente utile per comprendere la concentrazione e la variabilità dei dati e per individuare eventuali modalità o tendenze all'interno della distribuzione. Nel grafico di densità, sull'asse delle ordinate è rappresentata la densità di probabilità, che rappresenta la probabilità di trovare un'osservazione in una determinata posizione lungo l'asse delle ascisse. Più la curva è alta in un punto, maggiore è la probabilità che le osservazioni cadano in quella posizione. La distribuzione mostra una curva che rispiecchia a valori appena calcolati non ci sono bimodalità ma sono comunque presenti picchi di distribuzioni che rendono la rappresentazione frastagliata.
+
+```{r}
+ggplot(data = CAD, mapping = aes(`BP`)) +
+geom_density(fill = "white", col = "black")+theme_1
+
+```
+
+### Normal qqplot
+
+Un QQ-plot rappresenta una comparazione tra i quantili di due distribuzioni: la distribuzione dei dati osservati e una distribuzione teorica di riferimento (in questo caso la distribuzione normale). L'asse orizzontale rappresenta i quantili teorici della normale. L'asse verticale rappresenta i quantili osservati delle spese per la casa rispetto alla normale. I punti sul grafico rappresentano le coppie di quantili. Ogni punto corrisponde a un valore nei dati osservati (asse y) e al suo corrispondente quantile teorico (asse x) secondo la normale. I dati osservati non seguono esattamente la distribuzione della normale infatti pochi punti si allineano sulla retta di riferimento evidenziando discrepanze dalla distribuzione.
+
+```{r}
+
+qqnorm(CAD$`BP`, pch = 1, frame = FALSE)
+qqline(CAD$`BP`, col = "darkgreen", lwd = 2)
+```
+
+## FBS (variabile 3)
+
+FBS rappresenta la glicemia a digiuno, i pazienti in media registrano un valore prossimo a 119. La mediana è 98, per cui è espressione di asimmetria positiva. Il primo quartile (Q1) è 88,5 mg/dl, il secondo quartile (Q2, che è anche la mediana) è 98 mg/dl e il terzo quartile (Q3) è 130 mg/dl. La varianza è di circa 2712, il che indica che i dati sono poco vicini alla media. La deviazione standard è 52 indicando che la dispersione dei dati è moderata. Il valore della simmetria è 0,54 esprimendo una leggera tendenza verso la destra nella distribuzione, cioè alcuni pazienti potrebbero avere un valore più alto di glicemia rispetto alla media. La curtosi misura quanto le code della distribuzione differiscono da una distribuzione normale. Il valore di 6 indica che la distribuzione ha code più pesanti di una distribuzione normale.
+
+```{r}
+
+statistiche(CAD$`FBS`)
+
+```
+
+### Istogramma
+
+La stragrande maggioranza delle osservazioni si presenta con valori fra 30 e 130. Come già evidenziato dalla moda la maggior frequenze delle osservazioni si presenta nel valore di 98, questo si riflette nel grafico con presena di barra più alta. Non c'è evidenza di bimodalità ma presenza di leggera asimmetria negativa.
+
+```{r, warning=FALSE}
+
+ggplot(data = CAD, mapping = aes(`FBS`)) +
+geom_bar(fill = "white", col = "black")+theme_1
+
+```
+
+### Boxplot
+
+Il boxplot evidenza l'asimmetria positiva nei dati. Sono presenti possibili valori anomali.
+
+```{r}
+ggplot(CAD, aes(x = `FBS`)) +
+geom_boxplot() +
+coord_flip()+ theme_1
+
+```
+
+## TG- Trigliceridi (variabile 4)
+
+In media i pazienti registrano valori di globuli rossi intorno a 150 mg/dl. La mediana , se pur di poco , di discosta di 30 mg/dl. Osservando i quartili, si nota che il primo quartile (Q1) è del 90 mg/dl, il secondo quartile (Q2, equivalente alla mediana) è 122 mg/dl, e il terzo quartile (Q3) è 177 mg/dl. La dispersione intorno alla media è circa 97 mg/dl.\
+La simmetria, con un valore vicino a zero (0,26), suggerisce che la distribuzione è approssimativamente simmetrica, senza una forte tendenza verso destra o sinistra. La curtosi, con un valore positivo di 25, indica una distribuzione con code più pesanti rispetto a una distribuzione normale.
+
+```{r}
+
+statistiche(CAD$`TG`)
+
+```
+
+### Stripchart
+
+Nel grafico a stripchart, i punti dati vengono disposti lungo un'unica linea orizzontale o verticale, in modo che ciascun punto rappresenti un'osservazione o un valore specifico. I punti possono sovrapporsi se ci sono molte osservazioni con lo stesso valore. Questo tipo di grafico è spesso utilizzato per evidenziare la distribuzione dei dati, la concentrazione dei punti in determinate regioni e possibili outliers o valori anomali.
+
+Per la variabile che rappresenta i trigliceridi i dati si concentrano per lo più tra 0 e 200 con 2 valori che cadono fuori di 600 mg/dl e pochi sopra 400 mg/dl. In condizioni di osservazioni normali si potrebbe pensare a valori anomali ma in questo caso i valori giustificano la condizione dei pazienti, non è del tutto impensabile lavorare con questo tipo di dati.
+
+```{r}
+stripchart(CAD$`TG`,
+main="Percentuale dei tassi di occupazione nei diversi pazienti",
+xlab="Tasso di occupazione",
+ylab="Per stato",
+method="jitter",
+col="darkgreen",
+pch=1
+)
+
+```
+
+### Normal Qq plot
+
+Per la variabile relativa ai trigliceridi la similarità della distribuzione con quella della variabile casuale normale è più evidente rispetto alla variabile analizzata precedente. I dati osservati seguono quasi esattamente la distribuzione teorica della normale, i punti ,infatti, si allineano non perfettamente alla retta di 45 gradi.
+
+```{r}
+
+qqnorm(CAD$`TG`, pch = 1, frame = FALSE)
+qqline(CAD$`TG`, col = "lightgreen", lwd = 2)
+
+```
+
+## K- Potassio (Variabile 5)
+
+Il livello medio di potassio è di 4.2307. La mediana, che è 4.2, indica che metà dei pazienti ha un livello di potassio inferiore a 4.2 e l'altra metà ha un livello superiore a questo valore. Il primo quartile (Q1), pari a 3.9, mostra che il 25% dei pazienti ha un livello di potassio inferiore a questo valore. Il secondo quartile (Q2), che coincide con la mediana, è 4.2. Il terzo quartile (Q3) è 4.5, indicando che il 75% dei pazienti ha un livello di potassio inferiore a questo valore, mentre il restante 25% ha valori superiori. Il coefficiente di simmetria è 0, suggerendo che la distribuzione dei valori di potassio è perfettamente simmetrica rispetto alla media. Infine, la curtosi è 2.08, indicando che la distribuzione dei livelli di potassio ha una forma relativamente piatta rispetto a una distribuzione normale.
+
+```{r}
+statistiche(CAD$`K`)
+```
+
+### Boxplot
+
+Il boxplot non evidenza sintomi di asimmetria. Sono presenti solo due valori anomeli per la distribuzione.
+
+```{r}
+ggplot(CAD, aes(x = `K`)) +
+geom_boxplot() +
+coord_flip()+ theme_1
+
+```
+
+## WBC- Globuli rossi (Variabile 6)
+
+Il numero medio di globuli rossi (WBC) è di 7.562,046. La mediana del numero di globuli rossi è di 7.100, il che indica che metà dei pazienti ha un conteggio di globuli rossi inferiore a 7.100 e l'altra metà ha un conteggio superiore a questo valore. Il primo quartile (Q1), che è 5.800, mostra che il 25% dei pazienti ha un numero di globuli rossi inferiore a questo valore. Il secondo quartile (Q2), che coincide con la mediana, è 7.100. Il terzo quartile (Q3) è 8.800, indicando che il 75% dei pazienti ha un conteggio di globuli rossi inferiore a questo valore, mentre il restante 25% ha conteggi superiori. Il coefficiente di simmetria è 0,1333333, suggerendo che la distribuzione dei conteggi di globuli rossi è leggermente asimmetrica rispetto alla media. Infine, la curtosi è 2,793368, indicando che ha una forma relativamente normale ma leggermente più piatta rispetto a una distribuzione normale.
+
+```{r}
+statistiche(CAD$`WBC`)
+
+```
+
+### Box a Intaglio
+
+Si possono utilizzare anche i boxplot ad intaglio. Questi sono una rappresentazione grafica dei boxplot ma con l’aggiunta dell’intervallo di confidenza. Con un grado di fiducia del 95%, l’intervallo di confidenza approssimato per i globuli rossii è (6829.418 7370.582).
+
+```{r, warning=FALSE}
+ ggplot(CAD, aes(x = `WBC`)) +
+geom_boxplot(notch = TRUE) +
+coord_flip()+theme_1
+
+IQR <- quantile(CAD$`WBC`,0.75) - quantile(CAD$`WBC`, 0.25)
+M1 <- quantile(CAD$`WBC`,0.5) - 1.57 *IQR/sqrt(length(CAD$`WBC`))
+M2 <- quantile(CAD$`WBC`,0.5) + 1.57 *IQR/sqrt(length(CAD$`WBC`))
+
+
+```
+
+### Density
+
+Dalla visualizzazione della distribuzione è chiaramente possibile assimilare la totale assenza di asimmetria della distribuzione.
+
+```{r}
+ggplot(data = CAD, mapping = aes(`WBC`)) +
+geom_density(fill = "white", col = "black")+theme_1
+
+```
+
+## Ex-Smoker (Variabile 1)
+
+La variabile **EX-Smoker** rappresenta il numero di pazienti che sono stati fumatori in passato. Sono presenti 293 osservazioni con valore di ex-smoker 0 e 10 con valore 1.
+
+```{r}
+var1 <- data.frame( Frequenza=c(table(CAD$`EX-Smoker`)), Frequenza_percentuale=c(table(CAD$`EX-Smoker`)/nrow(CAD)*100))
+var1
+```
+
+```{r, warning=FALSE}
+theme_1<-theme(panel.background = element_rect(fill = '#83c8ac', color = '#9a8262'),
+panel.grid.major = element_line(color = '#ffffff', linetype = 'longdash'),
+panel.grid.minor = element_line(color = '#83c8ac', size = 0.7,linetype = "dotdash"))
+plot1<-ggplot(data=CAD, mapping= aes(x=`EX-Smoker`))+geom_bar(color='black', fill='white')+ ggtitle("Grafico a barre")+theme_1
+Inquinamento_Aria <- factor(CAD$`EX-Smoker`,
+levels = names(sort(table(CAD$`EX-Smoker`))))
+p2 <- ggplot(CAD, aes(x = "", y = `EX-Smoker`, fill = Inquinamento_Aria)) +
+geom_bar(width = 1, stat = "identity") +
+coord_polar("y") + theme_void()+  scale_fill_brewer(palette = "Greens")+ggtitle("Pie chart")
+ 
+
+p2 <- p2 +theme_minimal()
+
+grid.arrange(plot1, ncol = 1)
+
+```
+
+## Cath - CAD o Normale (Variabile 2)
+
+La variabile **Cath** rappresenta la variabile target dello studio. Dato il campione ristretto, il numero di osservazioni si riduce al 71% dei pazienti con prognosi di malattia coronaria e 28% in condizioni mediche normali.
+
+```{r}
+var2 <- data.frame( Frequenza=c(table(CAD$`Cath`)), Frequenza_percentuale=c(table(CAD$`Cath`)/nrow(CAD)*100))
+
+var2
+```
+
+```{r}
+p1 <- ggplot(CAD, aes(x = `Cath`)) +
+geom_bar(color = "black", fill = "white") +
+theme(axis.text.x = element_text(angle = 90)) + ylab("Numero di pazienti")
+p1 <- p1 +theme_1
+p1
+```
+
+### Lollipop Chart
+
+Un metodo alternativo per la visualizzazione di una variabile categoriale è il lollipop chart. Un *Lollipop Chart* è un grafico che presenta punti di dati come cerchi o dischi ("lollipops") posti su un asse orizzontale, che rappresenta una variabile indipendente o categoria. Ogni lollipop rappresenta un singolo punto dati e la sua posizione sull'asse orizzontale indica il valore di quella variabile. Il "lollipop" è collegato a una linea verticale o "astina" che si estende verso sinistra da ciascun punto dato fino a una seconda scala. La seconda scala rappresenta la variabile dipendente o un valore di riferimento, come una media o una soglia.
+
+Per cui, 16 stati hanno valore medio della soddisfazione dell'individuo al di sotto della media complessiva, mentre circa 22 stati hanno valore medio della soddisfazione al di sopra della media.
+
+```{r, warning=FALSE}
+
+
+data <- data.frame( y=c(table(CAD$`Cath`)), x=c('Cad', 'Normale'))
+
+# Reorder the data
+data <- data %>%
+  arrange(y) %>%
+  mutate(x=factor(x,x))
+
+# Plot
+p <- ggplot(data, aes(x=x, y=y)) +
+  geom_segment(
+    aes(x=x, xend=x, y=0, yend=y), 
+    color=ifelse(data$x %in% c("A","D"), "orange", "#83c8ac"), 
+    size=ifelse(data$x %in% c("A","D"), 1.3, 0.7)
+  ) +
+  geom_point(
+    color=ifelse(data$x %in% c("A","D"), "orange", "#83c8ac"), 
+    size=ifelse(data$x %in% c("A","D"), 5, 2)
+  ) +
+  coord_flip() +theme_minimal()+
+  theme(
+    legend.position="none"
+  ) +
+  xlab("") +
+  ylab("Numero di pazienti") +
+  ggtitle("Come si distribuisce la prognosi tra i pazienti?")
+
+p 
+```
+
+Il "Donut Chart" è un grafico circolare diviso in sezioni, o "fette," che rappresentano le diverse categorie di dati. Ogni fetta corrisponde a una categoria specifica e la dimensione di ciascuna fetta è proporzionale alla percentuale che quella categoria rappresenta rispetto al totale. E' un'alternativa al "Pie Chart" distinguendosi per il foro al centro, che crea un anello vuoto. Il "Donut Chart" è utile per visualizzare chiaramente come le diverse categorie contribuiscono a un totale, e la dimensione dell'anello interno rappresenta il totale complessivo.
+
+```{r}
+data <- data.frame( count=c(table(CAD$`Cath`)), category=c('Cad', 'Normal'))
+
+df <- data.frame(value = c(table(CAD$`Cath`)),
+                 Gruppo = c('Cad', 'Normal'))
+
+hsize <- 4
+
+
+df1 <- df %>% 
+  mutate(x = hsize)
+
+
+plot1<-ggplot(df1, aes(x = hsize, y = value, fill = Gruppo)) +
+  geom_col(color = "black") +
+  geom_text(aes(label = c('73%','27%')),
+            position = position_stack(vjust = 0.5)) +
+  coord_polar(theta = "y") +
+  scale_fill_brewer(palette=4) +
+  xlim(c(0.2, hsize + 0.5)) +  theme(panel.background = element_rect(fill = "white"),
+                                     panel.grid = element_blank(),
+                                     axis.title = element_blank(),
+                                     axis.ticks = element_blank(),
+                                     axis.text = element_blank())+ggtitle('Target CAD')
+
+plot1
+```
