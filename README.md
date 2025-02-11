@@ -7,8 +7,7 @@ Questo progetto mira a individuare il miglior modello predittivo per la malattia
 ## 📂 Struttura del Progetto
 - 📊 **`dataset/`**: Contiene i dati utilizzati per l'analisi.
 - 🛠 **`scripts/`**: Include gli script R per la pulizia dei dati, l'analisi esplorativa e la modellazione.
-- 📑 **`notebooks/`**: Notebook Jupyter e RMarkdown con analisi dettagliate.
-- 📜 **`results/`**: Report e visualizzazioni dei risultati ottenuti.
+- 📜 **`results/`**: Modelli ottenuti durante l'addestramento.
 - 📖 **`README.md`**: Questo file, che fornisce informazioni dettagliate sul progetto.
 
 ## 📋 Requisiti
@@ -20,25 +19,10 @@ install.packages(c("tidyverse", "randomForest", "xgboost", "caret", "shap", "ggp
 ## 🚀 Esecuzione del Progetto
 1. **Clonare il repository**:
    ```sh
-   git clone https://github.com/tuo-username/nome-repo.git
+   git clone https://github.com/carmens0/Heart-disease-classification-R.git
    cd nome-repo
    ```
-2. **Eseguire la pulizia dei dati**:
-   ```r
-   source("scripts/data_cleaning.R")
-   ```
-3. **Analisi esplorativa e feature engineering**:
-   ```r
-   rmarkdown::render("notebooks/EDA_Feature_Engineering.Rmd")
-   ```
-4. **Allenare i modelli**:
-   ```r
-   source("scripts/model_training.R")
-   ```
-5. **Valutare i risultati**:
-   ```r
-   rmarkdown::render("notebooks/Model_Comparison.Rmd")
-   ```
+
 
 ## 📊 Metodologia
 1. **🔍 Analisi Esplorativa dei Dati (EDA)**: Esame delle variabili, test statistici e visualizzazioni.
