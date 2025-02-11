@@ -51,6 +51,3 @@ install.packages(c("tidyverse", "randomForest", "xgboost", "caret", "shap", "ggp
 | **Carmela Pia Senatore** | Developer - [carmens0](https://github.com/carmens0) <br> Email - [carmensenatore58@gmail.com](mailto:carmensenatore58@gmail.com) <br> LinkedIn - [Carmela Pia Senatore](https://linkedin.com/in/carmela-pia-senatore-ba1797207) |
 
 
-## ⚖️ Licenza
-Questo progetto è rilasciato sotto la licenza MIT.
-
